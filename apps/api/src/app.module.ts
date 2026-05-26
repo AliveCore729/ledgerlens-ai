@@ -1,10 +1,31 @@
+import { PrismaModule } from "./modules/prisma/prisma.module";
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { envValidationSchema } from './common/config/env.validation';
+import { HealthModule } from "./modules/health/health.module";
+import { AuthModule } from "./modules/auth/auth.module";
+import { UsersModule } from "./modules/users/users.module";
+import { UploadsModule } from "./modules/uploads/uploads.module";
+import { StatementsModule } from "./modules/statements/statements.module";
+import { IntelligenceModule } from "./modules/intelligence/intelligence.module";
+import { AnalyticsModule } from "./modules/analytics/analytics.module";
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: "../../.env",
+      validationSchema: envValidationSchema,
+    }),
+
+    PrismaModule,
+    HealthModule,
+    AuthModule,
+    UsersModule,
+    UploadsModule,
+    StatementsModule,
+    IntelligenceModule,
+    AnalyticsModule,
+  ],
 })
-export class AppModule {}
+export class AppModule { }
