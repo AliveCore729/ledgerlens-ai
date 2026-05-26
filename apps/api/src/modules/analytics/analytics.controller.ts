@@ -21,4 +21,12 @@ export class AnalyticsController {
       req.user.userId,
     );
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("transactions")
+  async getTransactions(@Req() req: any) {
+    return this.analyticsService.getTransactions(
+      req.user.userId,
+    );
+  }
 }
