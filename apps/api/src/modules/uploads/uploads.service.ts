@@ -26,9 +26,9 @@ export class UploadsService {
         },
       });
 
-    for (const transaction of await processedData.transactions) {
-      await this.prisma.transaction.create({
-        data: {
+    if (processedData.transactions.length) {
+      await this.prisma.transaction.createMany({
+        data: processedData.transactions.map((transaction) => ({
           statementId: statement.id,
 
           raw: transaction.raw || "",
@@ -46,7 +46,7 @@ export class UploadsService {
 
           category:
             transaction.category || "UNCATEGORIZED",
-        },
+        })),
       });
     }
 
