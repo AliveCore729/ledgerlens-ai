@@ -3,6 +3,7 @@ import {
   Get,
   Req,
   UseGuards,
+  Query
 } from "@nestjs/common";
 
 import { AnalyticsService } from "./analytics.service";
@@ -16,9 +17,13 @@ export class AnalyticsController {
 
   @UseGuards(JwtAuthGuard)
   @Get("summary")
-  async getSummary(@Req() req: any) {
+  async getSummary(
+    @Req() req: any, 
+    @Query('statementId') statementId?: string // <-- Add this query param
+  ) {
     return this.analyticsService.getSummary(
       req.user.userId,
+      statementId
     );
   }
 
@@ -29,4 +34,5 @@ export class AnalyticsController {
       req.user.userId,
     );
   }
+  
 }
