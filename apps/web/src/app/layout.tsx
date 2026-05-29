@@ -1,9 +1,14 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Toaster } from '@/components/ui/sonner';
+import QueryProvider from '@/providers/query-provider'; // <-- 1. Import the provider
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "LedgerLens AI",
-  description: "AI bank statement analytics workspace",
+  title: 'LedgerLens AI',
+  description: 'Enterprise fintech SaaS for bank statement analysis',
 };
 
 export default function RootLayout({
@@ -12,8 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`}>
+        {/* 2. Wrap children and Toaster with the QueryProvider */}
+        <QueryProvider>
+          {children}
+          <Toaster richColors position="top-right" /> 
+        </QueryProvider>
+      </body>
     </html>
   );
 }

@@ -9,6 +9,7 @@ import { UploadsModule } from "./modules/uploads/uploads.module";
 import { StatementsModule } from "./modules/statements/statements.module";
 import { IntelligenceModule } from "./modules/intelligence/intelligence.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
+import { TransactionsModule } from "./modules/transactions/transactions.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AnalyticsModule } from "./modules/analytics/analytics.module";
     StatementsModule,
     IntelligenceModule,
     AnalyticsModule,
+    TransactionsModule
   ],
 })
 export class AppModule { }

@@ -19,30 +19,29 @@ type DashboardTransaction = {
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  async getSummary(userId: string) {
-    const transactions =
-      await this.prisma.transaction.findMany({
-        where: {
-          statement: {
-            uploadedBy: userId,
-          },
-        },
-        include: {
-          statement: {
-            select: {
-              id: true,
-              originalName: true,
-              createdAt: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+  async getSummary(userId: string, statementId?: string) {
+    // 1. Build the filter dynamically
+    const whereClause: any = {
+      statement: { uploadedBy: userId },
+    };
 
+    // If a specific statement is requested, add it to the filter
+    if (statementId) {
+      whereClause.statementId = statementId;
+    }
+
+    // 2. Fetch the isolated data
+    const transactions = await this.prisma.transaction.findMany({
+      where: whereClause,
+      include: {
+        statement: {
+          select: { id: true, originalName: true, createdAt: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
     let income = 0;
     let expense = 0;
     let uncategorized = 0;
