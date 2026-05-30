@@ -32,12 +32,12 @@ Page no. 1
     expect(transactions).toHaveLength(2);
     expect(transactions[0]).toMatchObject({
       amount: 119,
-      type: "DEBIT",
+      type: "debit",
       category: "UNCATEGORIZED",
     });
     expect(transactions[1]).toMatchObject({
       amount: 99,
-      type: "DEBIT",
+      type: "debit",
     });
   });
 
@@ -62,13 +62,81 @@ TFRS367875961500.001692.16Cr
     expect(transactions[0]).toMatchObject({
       date: "01-APR-2026",
       amount: 80,
-      type: "DEBIT",
+      type: "debit",
     });
     expect(transactions[0].vendor).toContain("UPI OUT");
     expect(transactions[1]).toMatchObject({
       date: "01-APR-2026",
       amount: 1500,
-      type: "CREDIT",
+      type: "credit",
     });
+  });
+
+  it("parses layout-preserved Federal Bank tables by row instead of bank-specific token routing", async () => {
+    const transactions = await service.extractTransactions(`
+                                   Statement of Account for the period 2026-05-10 to 2026-05-20
+    Date           Value Date                Particulars                                 Tran ID                           Withdrawals       Deposits      Balance
+                                Opening Balance                                                                                                               17.33        Cr
+
+10-MAY-2026       10-MAY-2026   UPI IN/018593982703/dkjksng@axl              TFR           S53407102                                           7125.00      7142.33        Cr
+10-MAY-2026       10-MAY-2026   UPIOUT/613055070315/cf.                      TFR           S53408571                             7125.40                      16.93        Cr
+11-MAY-2026       11-MAY-2026   UPI IN/180747739589/dkjksng@ybl              TFR           S67149889                                              723.00     739.93        Cr
+11-MAY-2026       11-MAY-2026   UPIOUT/613184998211/7205925193-              TFR           S67247761                              723.00                      16.93        Cr
+`);
+
+    expect(transactions).toHaveLength(4);
+    expect(transactions.map((tx) => tx.amount)).toEqual([7125, 7125.4, 723, 723]);
+    expect(transactions.map((tx) => tx.type)).toEqual(["credit", "debit", "credit", "debit"]);
+  });
+
+  it("handles large OCR statements without skipping merged transaction rows", async () => {
+    const transactions = await service.extractTransactions(`
+Post Date Value Date Description Debit Credit Balance
+01-04-2026 01-04-2026 UPI/DR/700000111111/SWIGGY /ICIC/swiggy/food 249.00 50,000.00CR
+01-04-2026 01-04-2026 UPI/DR/700000111112/AMAZON PAY /ICIC/amazon/mand 1,299.00 48,701.00CR 02-04-2026 02-04-2026 NEFT CR ACME PAYROLL 35,000.00 83,701.00CR
+03-04-2026 03-04-2026 UPI/DR/700000111113/HPCL PETROL PUMP 2,000.00 81,701.00CR
+03-04-2026 03-04-2026 IMPS CR CLIENT REFUND 5,500.00 87,201.00CR
+04-04-2026 04-04-2026 UPI/DR/700000111114/BESCOM ELECTRICITY BILL 1,850.00 85,351.00CR
+Page no. 2
+`);
+
+    expect(transactions).toHaveLength(6);
+
+    expect(transactions.map((tx) => tx.amount)).toEqual(
+      expect.arrayContaining([249, 1299, 35000, 2000, 5500, 1850]),
+    );
+
+    expect(transactions.filter((tx) => tx.type === "credit")).toHaveLength(2);
+    expect(transactions.filter((tx) => tx.type === "debit")).toHaveLength(4);
+
+    const categories = transactions.map((tx) => tx.category);
+    expect(categories).toEqual(expect.arrayContaining(["FOOD", "PURCHASE", "SALARY", "FUEL", "ELECTRICITY"]));
+  });
+
+  it("does not route non-federal TFR rows to federal parser", async () => {
+    const transactions = await service.extractTransactions(`
+Date Value Date Description Debit Credit Balance
+01-05-2026 01-05-2026 WDL TFR / ATM CASH 301.00 2,239.64CR
+02-05-2026 02-05-2026 WDL TFR / ATM CASH 1000.00 1,239.64CR
+03-05-2026 03-05-2026 DEP TFR / CASH DEPOSIT 589.00 1,828.64CR
+`);
+
+    expect(transactions).toHaveLength(3);
+    expect(transactions.map((tx) => tx.amount)).toEqual([301, 1000, 589]);
+    expect(transactions.map((tx) => tx.type)).toEqual(["debit", "debit", "credit"]);
+  });
+
+  it("corrects amount and type from trailing balance movement when OCR columns are noisy", async () => {
+    const transactions = await service.extractTransactions(`
+Date Description Debit Credit Balance
+10-05-2026 UPI TXN 301.00 2,239.64CR
+11-05-2026 UPI TXN 1000.00 1,239.64CR
+12-05-2026 UPI TXN 589.00 1,828.64CR
+`);
+
+    expect(transactions).toHaveLength(3);
+    expect(transactions[0]).toMatchObject({ amount: 301, type: "unknown" });
+    expect(transactions[1]).toMatchObject({ amount: 1000, type: "debit" });
+    expect(transactions[2]).toMatchObject({ amount: 589, type: "credit" });
   });
 });

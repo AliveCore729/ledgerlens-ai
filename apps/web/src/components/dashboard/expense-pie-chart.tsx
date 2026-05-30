@@ -45,7 +45,7 @@ export default function ExpensePieChart({ data, isLoading }: ExpensePieChartProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[300px] w-full rounded-md" />
+          <Skeleton className="h-75 w-full rounded-md" />
         </CardContent>
       </Card>
     );
@@ -59,8 +59,8 @@ export default function ExpensePieChart({ data, isLoading }: ExpensePieChartProp
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex h-[300px] w-full flex-col md:flex-row items-center">
-          <div className="h-[200px] md:h-full w-full md:w-1/2">
+        <div className="flex h-75 w-full flex-col md:flex-row items-center">
+          <div className="h-50 md:h-full w-full md:w-1/2">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -87,13 +87,13 @@ export default function ExpensePieChart({ data, isLoading }: ExpensePieChartProp
                     borderColor: 'hsl(var(--border))',
                     borderRadius: '8px',
                   }}
-                  formatter={(value: number) => formatCurrency(value)}
+                  formatter={(value) => formatCurrency(Number(value ?? 0))}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
           
-          <div className="w-full md:w-1/2 flex flex-col justify-center gap-2 overflow-y-auto max-h-[250px] pr-2">
+          <div className="w-full md:w-1/2 flex flex-col justify-center gap-2 overflow-y-auto max-h-62.5 pr-2">
             {(data || []).map((item, index) => {
               const percentage = totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(1) : 0;
               const color = CATEGORY_COLORS[item.category] || CATEGORY_COLORS.Other;

@@ -4,7 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 type DashboardTransaction = {
   id: string;
   date: string;
-  raw: string;
+  raw: string | null;
   amount: number;
   type: string;
   vendor: string | null;
@@ -12,7 +12,7 @@ type DashboardTransaction = {
   category: string | null;
   statement: {
     id: string;
-    originalName: string;
+    fileName: string;
     createdAt: Date;
   };
 };
@@ -24,7 +24,7 @@ export class AnalyticsService {
   async getSummary(userId: string, statementId?: string) {
     // 1. Build the filter dynamically
     const whereClause: any = {
-      statement: { uploadedBy: userId },
+      statement: { uploadedById: userId },
     };
 
     // If a specific statement is requested, add it to the filter
@@ -37,10 +37,13 @@ export class AnalyticsService {
       where: whereClause,
       include: {
         statement: {
-          select: { id: true, originalName: true, createdAt: true },
+          select: { id: true, fileName: true, createdAt: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { date: "desc" },
+        { createdAt: "desc" }
+      ],
     });
     let income = 0;
     let expense = 0;
@@ -67,7 +70,11 @@ export class AnalyticsService {
       categoryBreakdown: this.getCategoryBreakdown(transactions),
       monthlyCashflow: this.getMonthlyCashflow(transactions),
       topVendors: this.getTopVendors(transactions),
-      recentTransactions: transactions.slice(0, 15),
+      recentTransactions: transactions.slice(0, 15).map(tx => ({
+        ...tx,
+        type: tx.type === "CREDIT" ? "CR" : "DR",
+        category: tx.category ? tx.category.charAt(0).toUpperCase() + tx.category.slice(1).toLowerCase() : 'Uncategorized'
+      })),
     };
   }
 
@@ -75,21 +82,22 @@ export class AnalyticsService {
     return this.prisma.transaction.findMany({
       where: {
         statement: {
-          uploadedBy: userId,
+          uploadedById: userId,
         },
       },
       include: {
         statement: {
           select: {
             id: true,
-            originalName: true,
+            fileName: true,
             createdAt: true,
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [
+        { date: "desc" },
+        { createdAt: "desc" }
+      ],
       take: 200,
     });
   }

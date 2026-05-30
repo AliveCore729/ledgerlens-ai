@@ -1,70 +1,65 @@
-import { Injectable } from "@nestjs/common";
-
-import { StatementsService } from "../statements/statements.service";
-
-import { PrismaService } from "../prisma/prisma.service";
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UploadsService {
   constructor(
-    private statementsService: StatementsService,
+    @InjectQueue('ocr-job') private ocrQueue: Queue,
     private prisma: PrismaService,
-  ) { }
+  ) {}
 
   async handleUpload(file: Express.Multer.File, user: any) {
-    const processedData =
-      await this.statementsService.processStatement(
-        file.path,
-      );
+    try {
+      // Find the first organization the user belongs to (or mock if not found)
+      let org: any = await this.prisma.organizationUser.findFirst({
+        where: { userId: user.userId },
+        include: { organization: true },
+      }).then(ou => ou?.organization);
+      
+      if (!org) {
+        org = await this.prisma.organization.findFirst();
+      }
 
-    const statement =
-      await this.prisma.statement.create({
+      if (!org) {
+        // If DB is completely empty of orgs, create a default one for this user!
+        org = await this.prisma.organization.create({
+          data: {
+            name: "Default Workspace",
+            tenantId: "default-tenant-" + Date.now(),
+            organizationUsers: {
+              create: {
+                userId: user.userId,
+                role: "ADMIN"
+              }
+            }
+          }
+        });
+      }
+
+      const statement = await this.prisma.statement.create({
         data: {
-          originalName: file.originalname,
-          filename: file.filename,
-          uploadedBy: user.userId,
+          fileName: file.originalname,
+          fileUrl: file.path,
+          mimeType: file.mimetype,
+          size: file.size,
+          status: 'UPLOADED',
+          organizationId: org.id,
+          uploadedById: user.userId,
         },
       });
 
-    if (processedData.transactions.length) {
-      await this.prisma.transaction.createMany({
-        data: processedData.transactions.map((transaction) => ({
-          statementId: statement.id,
+      // Queue OCR Job
+      await this.ocrQueue.add('process-statement', { statementId: statement.id });
 
-          raw: transaction.raw || "",
-
-          date: transaction.date || "",
-
-          amount: Number(transaction.amount) || 0,
-
-          type: transaction.type || "UNKNOWN",
-
-          vendor: transaction.vendor || null,
-
-          normalizedVendor:
-            transaction.normalizedVendor || null,
-
-          category:
-            transaction.category || "UNCATEGORIZED",
-        })),
-      });
+      return {
+        message: 'Statement uploaded and queued for processing successfully',
+        statement,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException('Failed to process upload');
     }
-
-    return {
-      message: "Statement processed successfully",
-
-      uploadedBy: user.email,
-
-      file: {
-        originalName: file.originalname,
-        filename: file.filename,
-      },
-
-      extractedPreview:
-        processedData.extractedText.slice(0, 1000),
-
-      transactions:
-        (await processedData.transactions).slice(0, 20),
-    };
   }
 }

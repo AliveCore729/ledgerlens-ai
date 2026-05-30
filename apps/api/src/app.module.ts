@@ -1,4 +1,5 @@
 import { PrismaModule } from "./modules/prisma/prisma.module";
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from './common/config/env.validation';
@@ -18,7 +19,12 @@ import { TransactionsModule } from "./modules/transactions/transactions.module";
       envFilePath: "../../.env",
       validationSchema: envValidationSchema,
     }),
-
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     PrismaModule,
     HealthModule,
     AuthModule,

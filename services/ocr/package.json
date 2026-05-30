@@ -1,0 +1,27 @@
+{
+  "name": "ocr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@ledgerlens/database": "workspace:*",
+    "bullmq": "^5.41.6",
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.11.0",
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}

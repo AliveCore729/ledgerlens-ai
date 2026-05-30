@@ -1,5 +1,5 @@
 import { INestApplication, Injectable, OnModuleInit } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@ledgerlens/database";
 
 @Injectable()
 export class PrismaService

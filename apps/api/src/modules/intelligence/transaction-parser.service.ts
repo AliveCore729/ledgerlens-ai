@@ -1,6 +1,16 @@
 import { Injectable } from "@nestjs/common";
 
-type TransactionType = "CREDIT" | "DEBIT" | "UNKNOWN";
+type TransactionType = "credit" | "debit" | "unknown";
+
+export type ParsedTransaction = {
+  raw: string;
+  date: string; // ISO format: YYYY-MM-DD
+  amount: number;
+  type: TransactionType;
+  vendor: string;
+  category: string;
+  subcategory: string;
+};
 
 const DATE_PATTERN =
   /\b(?:\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}|\d{1,2}[-\s][A-Z]{3}[-\s]\d{2,4})\b/gi;
@@ -10,7 +20,7 @@ const AMOUNT_PATTERN =
 
 @Injectable()
 export class TransactionParserService {
-  parseTransaction(rawLine: string) {
+  parseTransaction(rawLine: string): ParsedTransaction | null {
     const normalized = this.normalizeLine(rawLine);
 
     const dateMatches = [...normalized.matchAll(DATE_PATTERN)];
@@ -44,6 +54,116 @@ export class TransactionParserService {
 
       subcategory: "",
     };
+  }
+
+  parseTableRow(rawLine: string): ParsedTransaction | null {
+    const normalized = this.normalizeLine(rawLine);
+    const dateMatches = [...normalized.matchAll(DATE_PATTERN)];
+    const dateMatch = dateMatches[0];
+
+    if (!dateMatch) {
+      return null;
+    }
+
+    const amountMatches = [...normalized.matchAll(AMOUNT_PATTERN)];
+    if (!amountMatches.length) {
+      return null;
+    }
+
+    if (/\bopening balance\b/i.test(normalized)) {
+      return null;
+    }
+
+    const balanceMatch = amountMatches[amountMatches.length - 1];
+    const hasBalanceSuffix = /(?:\b|\s)(?:CR|DR)\s*$/i.test(normalized);
+
+    let amount = this.parseAmount(
+      amountMatches.length >= 2 ? amountMatches[amountMatches.length - 2][0] : balanceMatch[0],
+    );
+    let type = this.detectTransactionType(normalized);
+
+    if (hasBalanceSuffix && type === "unknown") {
+      const balanceIndex = balanceMatch.index ?? normalized.length;
+      const prefix = normalized.slice(0, balanceIndex).toUpperCase();
+      if (/\b(?:UPI IN|DEP|CREDIT|CR|SALARY|REFUND|RECEIPT)\b/.test(prefix)) {
+        type = "credit";
+      } else if (/\b(?:UPIOUT|WDL|DEBIT|DR|PAYMENT|WITHDRAWAL|POS)\b/.test(prefix)) {
+        type = "debit";
+      }
+    }
+
+    return {
+      raw: normalized,
+      date: this.normalizeDate(dateMatch[0]),
+      amount,
+      type,
+      vendor: this.extractVendor(normalized),
+      category: "",
+      subcategory: "",
+    };
+  }
+
+  parseTransactionWithBalance(
+    rawLine: string,
+    currentBalance: number | null,
+    previousBalance: number | null,
+  ): ParsedTransaction | null {
+    const normalized = this.normalizeLine(rawLine);
+
+    const dateMatches = [...normalized.matchAll(DATE_PATTERN)];
+    const dateMatch = dateMatches[0];
+
+    if (!dateMatch) {
+      return null;
+    }
+
+    // If we have both balances, calculate amount from balance delta
+    if (currentBalance !== null && previousBalance !== null) {
+      const calculatedAmount = Math.abs(
+        Math.round((currentBalance - previousBalance) * 100) / 100,
+      );
+
+      const type = this.detectTransactionTypeWithBalance(
+        normalized,
+        currentBalance,
+        previousBalance,
+      );
+      const vendor = this.extractVendor(normalized);
+
+      return {
+        raw: normalized,
+        date: this.normalizeDate(dateMatch[0]),
+        amount: calculatedAmount,
+        type,
+        vendor,
+        category: "",
+        subcategory: "",
+      };
+    }
+
+    // Fallback to heuristic if we don't have balance context
+    return this.parseTransaction(rawLine);
+  }
+
+  parseGenericTableRow(rawLine: string): ParsedTransaction | null {
+    return this.parseTableRow(rawLine);
+  }
+
+  private detectTransactionTypeWithBalance(
+    line: string,
+    currentBalance: number,
+    previousBalance: number,
+  ): TransactionType {
+    const diff = currentBalance - previousBalance;
+
+    if (diff > 0) {
+      return "credit";
+    } else if (diff < 0) {
+      return "debit";
+    }
+
+    // Fallback if diff is 0
+    return this.detectTransactionType(line);
   }
 
   private normalizeLine(rawLine: string) {
@@ -103,7 +223,7 @@ export class TransactionParserService {
         upper,
       )
     ) {
-      return "DEBIT";
+      return "debit";
     }
 
     if (
@@ -112,16 +232,16 @@ export class TransactionParserService {
         upper,
       )
     ) {
-      return "CREDIT";
+      return "credit";
     }
 
     const trailingType = upper.match(/\b(CR|DR)\s*$/);
 
     if (trailingType) {
-      return trailingType[1] === "CR" ? "CREDIT" : "DEBIT";
+      return trailingType[1] === "CR" ? "credit" : "debit";
     }
 
-    return "UNKNOWN";
+    return "unknown";
   }
 
   private extractVendor(line: string) {
@@ -138,7 +258,26 @@ export class TransactionParserService {
   }
 
   private normalizeDate(date: string) {
-    return date.replace(/\s+/g, "-").toUpperCase();
+    // Convert to ISO format YYYY-MM-DD
+    const normalized = date.replace(/\s+/g, "-").toUpperCase();
+    const match = normalized.match(
+      /(\d{1,2})[-](JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[-](\d{4})/i,
+    );
+    if (match) {
+      const [, day, month, year] = match;
+      const monthMap: { [key: string]: string } = {
+        JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06",
+        JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12",
+      };
+      return `${year}-${monthMap[month]}-${day.padStart(2, "0")}`;
+    }
+    // Already in numeric format like DD-MM-YYYY or DD/MM/YYYY
+    const numMatch = normalized.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (numMatch) {
+      const [, day, month, year] = numMatch;
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    return normalized;
   }
 }
 

@@ -36,7 +36,7 @@ interface TransactionsResponse {
   totalPages: number;
 }
 
-export const useTransactions = (filters: TransactionFilters) => {
+export const useTransactions = (filters: TransactionFilters, isProcessing?: boolean) => {
   return useQuery<TransactionsResponse>({
     queryKey: ['transactions', filters],
     queryFn: async () => {
@@ -56,6 +56,7 @@ export const useTransactions = (filters: TransactionFilters) => {
       const { data } = await api.get('/transactions', { params: cleanFilters });
       return data;
     },
+    refetchInterval: isProcessing ? 3000 : false,
   });
 };
 
@@ -78,7 +79,12 @@ export const exportTransactions = async (filters: TransactionFilters) => {
   const cleanFilters = { ...filters };
   if (cleanFilters.type === 'All') delete cleanFilters.type;
   if (cleanFilters.category === 'All Categories') delete cleanFilters.category;
-  if (!cleanFilters.statementId) delete cleanFilters.statementId;
+  if (!cleanFilters.search) delete cleanFilters.search;
+  if (!cleanFilters.startDate) delete cleanFilters.startDate;
+  if (!cleanFilters.endDate) delete cleanFilters.endDate;
+  if (!cleanFilters.statementId || cleanFilters.statementId === 'null') {
+    delete cleanFilters.statementId;
+  }
   
   const response = await api.get('/transactions/export', {
     params: cleanFilters,

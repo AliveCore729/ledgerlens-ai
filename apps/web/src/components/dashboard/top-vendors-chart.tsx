@@ -34,7 +34,7 @@ export default function TopVendorsChart({ data, isLoading }: TopVendorsChartProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[300px] w-full rounded-md" />
+          <Skeleton className="h-75 w-full rounded-md" />
         </CardContent>
       </Card>
     );
@@ -57,7 +57,7 @@ export default function TopVendorsChart({ data, isLoading }: TopVendorsChartProp
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        <div className="h-75 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={topVendors}
@@ -88,8 +88,8 @@ export default function TopVendorsChart({ data, isLoading }: TopVendorsChartProp
                   borderColor: 'hsl(var(--border))',
                   borderRadius: '8px',
                 }}
-                formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
-                labelFormatter={(label: string) => `Vendor: ${label}`}
+                formatter={(value) => [formatCurrency(Number(value ?? 0)), 'Total Amount']}
+                labelFormatter={(label) => `Vendor: ${String(label ?? '')}`}
               />
               <Bar
                 dataKey="amount"

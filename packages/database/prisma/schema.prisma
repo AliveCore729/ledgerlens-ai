@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String             @id @default(uuid())
+  email            String             @unique
+  passwordHash     String
+  firstName        String?
+  lastName         String?
+  role             Role               @default(USER)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  organizationUsers OrganizationUser[]
+  statements       Statement[]
+}
+
+model Organization {
+  id               String             @id @default(uuid())
+  tenantId         String             @unique @default(uuid())
+  name             String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  organizationUsers OrganizationUser[]
+  statements       Statement[]
+}
+
+model OrganizationUser {
+  id             String       @id @default(uuid())
+  userId         String
+  organizationId String
+  role           OrgRole      @default(MEMBER)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([userId, organizationId])
+}
+
+enum Role {
+  USER
+  SUPER_ADMIN
+}
+
+enum OrgRole {
+  ADMIN
+  ACCOUNTANT
+  CLIENT
+  MEMBER
+}
+
+enum StatementStatus {
+  PENDING
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Statement {
+  id             String          @id @default(uuid())
+  fileName       String
+  fileUrl        String
+  mimeType       String
+  size           Int
+  status         StatementStatus @default(PENDING)
+  
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  uploadedById   String?
+  uploadedBy     User?           @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  transactions   Transaction[]
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Transaction {
+  id               String       @id @default(uuid())
+  statementId      String
+  statement        Statement    @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  date             String
+  amount           Float
+  type             String       // CREDIT or DEBIT
+  vendor           String?
+  normalizedVendor String?
+  category         String       @default("UNCATEGORIZED")
+  raw              String?      
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}

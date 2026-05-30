@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Loader2, FileText } from 'lucide-react';
 
 export default function RegisterPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +31,8 @@ export default function RegisterPage() {
     try {
       // Calls your NestJS POST /api/v1/auth/register endpoint
       const response = await api.post('/auth/register', {
+        firstName,
+        lastName,
         email,
         password,
       });
@@ -67,6 +71,29 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="firstName">First Name</label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="lastName">Last Name</label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="email">Email</label>
               <Input

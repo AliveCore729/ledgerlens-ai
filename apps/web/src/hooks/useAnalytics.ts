@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
-// Accept an optional statementId parameter
-export const useAnalytics = (statementId?: string | null) => {
+// Accept an optional statementId parameter and isProcessing flag
+export const useAnalytics = (statementId?: string | null, isProcessing?: boolean) => {
   return useQuery({
     // Add statementId to the queryKey so it refetches when the ID changes
     queryKey: ['analytics', statementId],
@@ -13,5 +13,6 @@ export const useAnalytics = (statementId?: string | null) => {
       return data;
     },
     staleTime: 30000,
+    refetchInterval: isProcessing ? 3000 : false,
   });
 };
