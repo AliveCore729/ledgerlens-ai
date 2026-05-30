@@ -42,15 +42,17 @@ const worker = new Worker(
 
       // 3. Save Transactions
       if (parsedTransactions.length > 0) {
+        const now = new Date();
         await prisma.transaction.createMany({
-          data: parsedTransactions.map((tx: any) => ({
+          data: parsedTransactions.map((tx: any, index: number) => ({
             statementId: statement.id,
             date: tx.date,
             amount: tx.amount,
             type: tx.type,
             vendor: tx.vendor,
             category: tx.category,
-            raw: tx.narration || tx.vendor // Use AI extracted narration, fallback to vendor
+            raw: tx.narration || tx.vendor,
+            createdAt: new Date(now.getTime() + index) // Offset by index to strictly preserve statement order
           }))
         });
       }

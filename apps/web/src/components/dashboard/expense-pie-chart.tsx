@@ -18,17 +18,23 @@ interface ExpensePieChartProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Salary: '#22c55e',
-  Fuel: '#f97316',
-  Rent: '#8b5cf6',
-  Food: '#ec4899',
-  Electricity: '#eab308',
-  Insurance: '#06b6d4',
-  Loan: '#ef4444',
-  Tax: '#6366f1',
-  Miscellaneous: '#94a3b8',
-  Purchase: '#14b8a6',
-  Other: '#64748b',
+  "Income": "#22c55e",
+  "Food & Dining": "#ec4899",
+  "Travel & Transportation": "#3b82f6",
+  "Software & Subscriptions": "#6366f1",
+  "Utilities & Bills": "#eab308",
+  "Rent & Housing": "#8b5cf6",
+  "Salary & Payroll": "#10b981",
+  "Office Supplies": "#f97316",
+  "Marketing & Advertising": "#14b8a6",
+  "Bank Fees & Charges": "#ef4444",
+  "Transfers & Investments": "#06b6d4",
+  "Healthcare & Insurance": "#f43f5e",
+  "Shopping & Retail": "#d946ef",
+  "Entertainment & Leisure": "#8b5cf6",
+  "Taxes & Fines": "#334155",
+  "Misc": "#94a3b8",
+  "Other": "#64748b",
 };
 
 export default function ExpensePieChart({ data, isLoading }: ExpensePieChartProps) {
