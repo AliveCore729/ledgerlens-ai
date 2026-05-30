@@ -15,6 +15,7 @@
     "@ledgerlens/database": "workspace:*",
     "bullmq": "^5.41.6",
     "dotenv": "^16.4.7",
+    "groq-sdk": "^1.2.1",
     "ioredis": "^5.11.0",
     "pdf-parse": "^1.1.1",
     "tesseract.js": "^7.0.0"
