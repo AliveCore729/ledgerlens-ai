@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') }); // Load root 
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({ 
-  model: 'gemini-2.0-flash',
+  model: 'gemini-flash-latest',
   generationConfig: {
     responseMimeType: "application/json",
     responseSchema: {
