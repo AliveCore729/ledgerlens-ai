@@ -84,7 +84,7 @@ export default function RecentTransactions({ data, isLoading }: RecentTransactio
                       ? format(new Date(tx.date), 'dd MMM yyyy')
                       : tx.date || 'Unknown'}
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate" title={tx.narration}>
+                  <TableCell className="max-w-50 truncate" title={tx.narration}>
                     {tx.vendor || tx.narration}
                   </TableCell>
                   <TableCell>
@@ -97,7 +97,7 @@ export default function RecentTransactions({ data, isLoading }: RecentTransactio
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none">
-                      {tx.category || 'Uncategorized'}
+                      {tx.category ? tx.category.charAt(0).toUpperCase() + tx.category.slice(1).toLowerCase() : 'Uncategorized'}
                     </Badge>
                   </TableCell>
                   <TableCell className={`text-right font-semibold ${tx.type === 'CR' ? 'text-emerald-500' : 'text-foreground'}`}>

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { QueryTransactionsDto } from './dto/query-transactions.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@ledgerlens/database';
 
 @Injectable()
 export class TransactionsService {
@@ -11,18 +11,20 @@ export class TransactionsService {
   private buildWhereClause(userId: string, query: QueryTransactionsDto): Prisma.TransactionWhereInput {
     const where: Prisma.TransactionWhereInput = {
         statement: {
-            uploadedBy: userId // Ensure isolation by checking the statement owner
+            uploadedById: userId // Ensure isolation by checking the statement owner
         }
     };
 
     if (query.statementId) where.statementId = query.statementId;
-    if (query.type) where.type = query.type;
+    if (query.type) {
+        where.type = query.type === 'CR' ? 'CREDIT' : 'DEBIT';
+    }
     if (query.category) where.category = query.category;
 
     if (query.startDate || query.endDate) {
-      where.createdAt = {}; // Filter by the database timestamp instead
-      if (query.startDate) where.createdAt.gte = new Date(query.startDate);
-      if (query.endDate) where.createdAt.lte = new Date(query.endDate);
+      where.date = {};
+      if (query.startDate) where.date.gte = query.startDate;
+      if (query.endDate) where.date.lte = query.endDate;
     }
 
     if (query.search) {
@@ -36,14 +38,22 @@ export class TransactionsService {
   }
 
   async findAll(userId: string, query: QueryTransactionsDto) {
-    const { page = 1, limit = 20, sortBy = 'date', sortOrder = 'desc' } = query;
+    const { page = 1, limit = 20, sortBy = 'date', sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
     const where = this.buildWhereClause(userId, query);
 
-    // Map frontend 'amount' or 'date' to backend schema names
-    let orderBy: any = { createdAt: sortOrder }; 
-    if (sortBy === 'date') orderBy = { createdAt: sortOrder };
-    if (sortBy === 'amount') orderBy = { amount: sortOrder };
+    // Sort by transaction date (statement date), then createdAt for stable ordering.
+    let orderBy: Prisma.TransactionOrderByWithRelationInput[] = [
+      { date: sortOrder },
+      { createdAt: sortOrder },
+    ];
+
+    if (sortBy === 'amount') {
+      orderBy = [
+        { amount: sortOrder },
+        { date: sortOrder },
+      ];
+    }
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.transaction.findMany({
@@ -58,14 +68,13 @@ export class TransactionsService {
     // Map to the frontend expected shape
     const mappedData = data.map(tx => ({
         id: tx.id,
-        date: tx.date, // Fallback to createdAt if date string parsing is complex
+        date: tx.date, // ISO format YYYY-MM-DD
         narration: tx.raw,
         vendor: tx.vendor,
         amount: tx.amount,
-        type: tx.type === 'CREDIT' ? 'CR' : 'DR', // Map NestJS types to Frontend types
-        category: tx.category,
-        subcategory: null,
-        confidence: 0.9,
+        type: tx.type === 'CREDIT' ? 'CR' : 'DR',
+        category: tx.category ? tx.category.charAt(0).toUpperCase() + tx.category.slice(1).toLowerCase() : 'Uncategorized',
+        confidence: 0.95,
         needsReview: false,
         statementId: tx.statementId
     }));
@@ -83,7 +92,7 @@ export class TransactionsService {
     const transaction = await this.prisma.transaction.findFirst({
       where: { 
           id, 
-          statement: { uploadedBy: userId } 
+          statement: { uploadedById: userId } 
         },
     });
 
@@ -103,13 +112,16 @@ export class TransactionsService {
     const where = this.buildWhereClause(userId, query);
     const transactions = await this.prisma.transaction.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { date: 'desc' },
+        { createdAt: 'desc' },
+      ],
       take: 10000,
     });
 
     const headers = ['Date', 'Narration', 'Vendor', 'Type', 'Amount', 'Category'];
     const rows = transactions.map(tx => {
-      const date = tx.createdAt.toLocaleDateString('en-GB'); 
+      const date = tx.date || tx.createdAt.toLocaleDateString('en-GB'); 
       const narration = `"${(tx.raw || '').replace(/"/g, '""')}"`;
       const vendor = `"${tx.vendor || ''}"`;
       const type = tx.type === 'CREDIT' ? 'CR' : 'DR';

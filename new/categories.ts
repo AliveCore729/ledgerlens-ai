@@ -1,0 +1,31 @@
+// Client-safe shared categories list.
+export const CATEGORIES = [
+  "Income",
+  "Salary",
+  "Refund",
+  "Transfer",
+  "Food & Dining",
+  "Groceries",
+  "Shopping",
+  "Travel",
+  "Transportation",
+  "Fuel",
+  "Utilities",
+  "Rent",
+  "Housing",
+  "Healthcare",
+  "Insurance",
+  "Education",
+  "Entertainment",
+  "Subscriptions",
+  "Investments",
+  "Taxes",
+  "Bank Fees",
+  "ATM/Cash",
+  "Charity",
+  "Business",
+  "Personal Care",
+  "Other",
+] as const;
+
+export type Category = (typeof CATEGORIES)[number];

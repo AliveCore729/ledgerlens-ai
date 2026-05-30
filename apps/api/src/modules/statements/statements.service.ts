@@ -18,11 +18,17 @@ export class StatementsService {
     const fileBuffer = fs.readFileSync(filePath);
 
     let extractedText = "";
+    let layoutPreferred = false;
 
     if (filePath.endsWith(".pdf")) {
       const pdfData = await pdfParse(fileBuffer);
 
-      extractedText = pdfData.text;
+      extractedText = await this.ocrService.extractTextFromPdfLayout(filePath);
+      layoutPreferred = Boolean(extractedText.trim());
+
+      if (!extractedText.trim()) {
+        extractedText = pdfData.text;
+      }
 
       if (this.isProbablyScannedPdf(extractedText)) {
         extractedText =
@@ -34,7 +40,9 @@ export class StatementsService {
     }
 
     const transactions =
-      await this.parserService.extractTransactions(extractedText);
+      await this.parserService.extractTransactions(extractedText, {
+        layoutPreferred,
+      });
 
     return {
       extractedText,

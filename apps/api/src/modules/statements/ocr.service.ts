@@ -29,6 +29,21 @@ export class OcrService {
     }
   }
 
+  async extractTextFromPdfLayout(pdfPath: string) {
+    try {
+      const { stdout } = await execFileAsync("pdftotext", [
+        "-layout",
+        "-nopgbrk",
+        pdfPath,
+        "-",
+      ]);
+
+      return stdout;
+    } catch {
+      return "";
+    }
+  }
+
   async extractTextFromPdf(pdfPath: string) {
     const outputDir = await fs.promises.mkdtemp(
       path.join(os.tmpdir(), "ledgerlens-ocr-"),

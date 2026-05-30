@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { Download, Search, X, Edit2, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useStatements } from '@/hooks/useStatements';
 import { useTransactions, useUpdateCategory, exportTransactions, TransactionFilters } from '@/hooks/useTransactions';
 import TransactionRowSkeleton from '@/components/dashboard/transaction-row-skeleton';
 import { formatCurrency } from '@/lib/utils';
@@ -13,6 +14,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -77,7 +79,10 @@ export default function TransactionsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const { data, isLoading, isError, isFetching } = useTransactions(filters);
+  const { data: statements } = useStatements();
+  const isProcessing = statements?.some((s) => s.status === 'PROCESSING' || s.status === 'PENDING');
+
+  const { data, isLoading, isError, isFetching } = useTransactions(filters, isProcessing);
   const { mutate: updateCategory } = useUpdateCategory();
 
   // Debounce search input
@@ -159,6 +164,13 @@ export default function TransactionsPage() {
         <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
         <p className="text-muted-foreground">View, filter, and categorize your ledger entries.</p>
       </div>
+
+      {isProcessing && (
+        <div className="bg-primary/10 border border-primary text-primary px-4 py-3 rounded-lg flex items-center gap-3 shadow-sm animate-pulse">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <p className="font-medium">Our AI is currently extracting transactions from your statement. They will appear here automatically when ready...</p>
+        </div>
+      )}
 
       {/* FILTER BAR */}
       <div className="flex flex-col gap-4 p-4 bg-card rounded-lg border shadow-sm">
@@ -254,14 +266,14 @@ export default function TransactionsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[120px]">Date</TableHead>
-                <TableHead className="min-w-[300px]">Narration</TableHead>
+                <TableHead className="w-30">Date</TableHead>
+                <TableHead className="min-w-75">Narration</TableHead>
                 <TableHead>Vendor</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Confidence</TableHead>
-                <TableHead className="w-[60px]"></TableHead>
+                <TableHead className="w-15"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -298,7 +310,7 @@ export default function TransactionsPage() {
                     <TableCell>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger className="text-left cursor-help truncate max-w-[280px] block">
+                          <TooltipTrigger className="text-left cursor-help truncate max-w-70 block">
                             {tx.narration.length > 35 ? `${tx.narration.substring(0, 35)}...` : tx.narration}
                           </TooltipTrigger>
                           <TooltipContent>
@@ -329,7 +341,7 @@ export default function TransactionsPage() {
                           onValueChange={(val) => handleCategoryUpdate(tx.id, val)}
                           onOpenChange={(open) => !open && setEditingId(null)}
                         >
-                          <SelectTrigger className="w-[140px] h-8">
+                          <SelectTrigger className="w-35 h-8">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -383,7 +395,7 @@ export default function TransactionsPage() {
               value={filters.limit?.toString()}
               onValueChange={(val) => setFilters((f) => ({ ...f, limit: Number(val), page: 1 }))}
             >
-              <SelectTrigger className="w-[70px] h-8">
+              <SelectTrigger className="w-17.5 h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

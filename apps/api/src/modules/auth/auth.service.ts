@@ -35,7 +35,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         firstName: dto.firstName,
         lastName: dto.lastName,
       },
@@ -63,7 +63,7 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(
       dto.password,
-      user.password,
+      user.passwordHash,
     );
 
     if (!isPasswordValid) {

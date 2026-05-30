@@ -9,13 +9,18 @@ import CashflowChart from '@/components/dashboard/cashflow-chart';
 import ExpensePieChart from '@/components/dashboard/expense-pie-chart';
 import TopVendorsChart from '@/components/dashboard/top-vendors-chart';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { useStatements } from '@/hooks/useStatements';
 
 export default function DashboardPage() {
 
   const searchParams = useSearchParams();
   const statementId = searchParams.get('statementId');
-  const { data, isLoading, isError } = useAnalytics(statementId);
+  
+  const { data: statements } = useStatements();
+  const isProcessing = statements?.some((s) => s.status === 'PROCESSING' || s.status === 'PENDING');
+  
+  const { data, isLoading, isError } = useAnalytics(statementId, isProcessing);
 
   if (isError) {
     return (
@@ -53,6 +58,13 @@ export default function DashboardPage() {
         </div>
         <UploadPanel />
       </div>
+
+      {isProcessing && (
+        <div className="bg-primary/10 border border-primary text-primary px-4 py-3 rounded-lg flex items-center gap-3 shadow-sm animate-pulse">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <p className="font-medium">Our AI is currently analyzing your uploaded statement. Your dashboard will update automatically in a few seconds...</p>
+        </div>
+      )}
 
       {/* Stats Cards - Map NestJS 'totalExpense' and 'balance' to the frontend props */}
       <StatsCards 

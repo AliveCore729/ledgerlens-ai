@@ -35,7 +35,7 @@ export default function CashflowChart({ data, isLoading }: CashflowChartProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[300px] w-full rounded-md" />
+          <Skeleton className="h-75 w-full rounded-md" />
         </CardContent>
       </Card>
     );
@@ -49,7 +49,7 @@ export default function CashflowChart({ data, isLoading }: CashflowChartProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        <div className="h-75 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data || []}
@@ -85,7 +85,7 @@ export default function CashflowChart({ data, isLoading }: CashflowChartProps) {
                   borderColor: 'hsl(var(--border))',
                   borderRadius: '8px',
                 }}
-                formatter={(value: number) => [formatCurrency(value), undefined]}
+                formatter={(value) => [formatCurrency(Number(value ?? 0)), undefined]}
               />
               <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '14px' }}/>
               <Area

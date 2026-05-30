@@ -9,6 +9,7 @@ import { api } from '@/lib/api'; // Updated path based on your new folder struct
 
 export default function UploadPanel() {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -27,6 +28,7 @@ export default function UploadPanel() {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
     
     const formData = new FormData();
     formData.append('file', file);
@@ -36,6 +38,12 @@ export default function UploadPanel() {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        },
       });
 
       // Sonner success toast
@@ -44,6 +52,8 @@ export default function UploadPanel() {
       });
 
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['statements'] });
       
     } catch (error) {
       console.error('Upload error:', error);
@@ -64,7 +74,7 @@ export default function UploadPanel() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       <input
         type="file"
         ref={fileInputRef}
@@ -80,7 +90,7 @@ export default function UploadPanel() {
         {isUploading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Uploading...
+            Uploading ({uploadProgress}%)
           </>
         ) : (
           <>
@@ -89,6 +99,14 @@ export default function UploadPanel() {
           </>
         )}
       </Button>
+      {isUploading && (
+        <div className="w-full bg-secondary/50 rounded-full h-1.5 overflow-hidden">
+          <div 
+            className="bg-primary h-1.5 rounded-full transition-all duration-300 ease-in-out" 
+            style={{ width: `${uploadProgress}%` }} 
+          />
+        </div>
+      )}
     </div>
   );
 }
