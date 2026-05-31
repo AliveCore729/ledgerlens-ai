@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ReceiptText, LogOut, FileText } from 'lucide-react';
+import { LayoutDashboard, ReceiptText, LogOut, FileText, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '../ui/button';
@@ -37,13 +37,11 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="hidden md:flex w-64 flex-col border-r bg-card text-card-foreground shadow-sm min-h-screen sticky top-0 left-0">
+    <div className="hidden md:flex w-64 flex-col border-r border-white/5 bg-[#050505] text-white shadow-sm min-h-screen sticky top-0 left-0">
       {/* Logo Area */}
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <FileText className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <span className="text-lg font-bold tracking-tight">LedgerLens AI</span>
+      <div className="flex h-16 items-center gap-2 border-b border-white/5 px-6">
+        <Sun className="h-6 w-6 text-white" />
+        <span className="text-lg font-semibold tracking-tight" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>LedgerLens AI</span>
       </div>
 
       {/* Navigation Links */}
@@ -55,10 +53,10 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-[#3054ff]/10 text-[#b4c0ff] border border-[#3054ff]/20 shadow-[0_0_15px_rgba(48,84,255,0.1)]" 
+                  : "text-white/60 hover:bg-white/5 hover:text-white border border-transparent"
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -69,17 +67,16 @@ export default function Sidebar() {
       </div>
 
       {/* User Area / Logout */}
-      {/* The Fix: mt-auto pushes it to the bottom, shrink-0 prevents stretching */}
-  <div className="mt-auto p-4 shrink-0 border-t">
-    <Button 
-      variant="ghost" 
-      onClick={handleLogout}
-      className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
-    >
-      <LogOut className="mr-2 h-4 w-4" />
-      Sign Out
-    </Button>
-  </div>
+      <div className="mt-auto p-4 shrink-0 border-t border-white/5">
+        <Button 
+          variant="ghost" 
+          onClick={handleLogout}
+          className="w-full justify-start text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Sign Out
+        </Button>
+      </div>
     </div>
   );
 }

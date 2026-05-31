@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
-import QueryProvider from '@/providers/query-provider'; // <-- 1. Import the provider
-
-const inter = Inter({ subsets: ['latin'] });
+import QueryProvider from '@/providers/query-provider';
 
 export const metadata: Metadata = {
   title: 'LedgerLens AI',
@@ -17,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className="antialiased" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
         {/* 2. Wrap children and Toaster with the QueryProvider */}
         <QueryProvider>
           {children}
