@@ -307,9 +307,18 @@ export default function TransactionsPage() {
                 data?.data.map((tx) => (
                   <TableRow key={tx.id}>
                     <TableCell className="font-medium whitespace-nowrap">
-                      {tx.date && !isNaN(new Date(tx.date).getTime())
-                        ? format(new Date(tx.date), 'dd MMM yyyy')
-                        : tx.date || 'Unknown'}
+                      <div className="flex flex-col">
+                        <span>
+                          {tx.date && !isNaN(new Date(tx.date).getTime())
+                            ? format(new Date(tx.date), 'dd MMM yyyy')
+                            : tx.date || 'Unknown'}
+                        </span>
+                        {tx.time && (
+                          <span className="text-xs text-muted-foreground mt-0.5">
+                            {tx.time}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
 
                     <TableCell>

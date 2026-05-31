@@ -20,7 +20,8 @@ export async function parseTransactions(rawText: string) {
         items: {
           type: SchemaType.OBJECT,
           properties: {
-            date: { type: SchemaType.STRING },
+            date: { type: SchemaType.STRING, description: "Date of the transaction strictly formatted as YYYY-MM-DD" },
+            time: { type: SchemaType.STRING, description: "Exact time of the transaction (e.g. '14:30', '02:30 PM') if visible on the statement line, otherwise null" },
             amount: { type: SchemaType.NUMBER },
             type: { type: SchemaType.STRING, enum: ["CREDIT", "DEBIT"] },
             vendor: { type: SchemaType.STRING, description: "Short, clean vendor name without extra IDs (e.g. 'Uber', 'Amazon', 'Starbucks')" },
@@ -53,9 +54,12 @@ export async function parseTransactions(rawText: string) {
   const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
   for (const chunk of chunks) {
-    const prompt = `Extract the bank statement transactions from the following raw OCR text chunk. Focus on dates, amounts, transaction types (CREDIT or DEBIT), vendor names, and categorize them into standard financial categories. Ignore headers, footers, and non-transaction text.
+    const prompt = `Extract the bank statement transactions from the following raw OCR text chunk. Focus on dates, times, amounts, transaction types (CREDIT or DEBIT), vendor names, and categorize them into standard financial categories. Ignore headers, footers, and non-transaction text.
 
   CRITICAL: 
+  - For 'date', you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
+  - For 'amount', you MUST extract the actual transaction amount (the Credit or Debit column). DO NOT extract the Running Balance amount, which often appears at the far right of the statement row. If a line only contains a balance, ignore it.
+  - For 'time', extract the exact time from the statement line (e.g. "14:30", "2:30 PM", "14:30:00"). If no time is explicitly visible on the line, leave it blank or null.
   - For 'vendor', provide ONLY a short, clean business name (e.g., "Amazon", "Uber", "Starbucks"). Strip out any transaction IDs, terminal numbers, or filler words like "POS", "UPI", "PAYMENT".
   - For 'narration', provide the exact full original text of the transaction line as it appears in the statement.
   - For 'category', you MUST map it to one of the following standard categories: Income, Food & Dining, Travel & Transportation, Software & Subscriptions, Utilities & Bills, Rent & Housing, Salary & Payroll, Office Supplies, Marketing & Advertising, Bank Fees & Charges, Transfers & Investments, Healthcare & Insurance, Shopping & Retail, Entertainment & Leisure, Taxes & Fines, or Misc. 

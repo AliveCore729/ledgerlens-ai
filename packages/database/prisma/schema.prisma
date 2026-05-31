@@ -88,6 +88,7 @@ model Transaction {
   statementId      String
   statement        Statement    @relation(fields: [statementId], references: [id], onDelete: Cascade)
   date             String
+  time             String?
   amount           Float
   type             String       // CREDIT or DEBIT
   vendor           String?
