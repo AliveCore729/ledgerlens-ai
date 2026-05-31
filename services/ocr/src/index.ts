@@ -47,6 +47,7 @@ const worker = new Worker(
           data: parsedTransactions.map((tx: any, index: number) => ({
             statementId: statement.id,
             date: tx.date,
+            time: tx.time || null,
             amount: tx.amount,
             type: tx.type,
             vendor: tx.vendor,
