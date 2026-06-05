@@ -32,20 +32,52 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
+    const userCount = await this.prisma.user.count();
+    const assignedRole = userCount === 0 ? "SUPER_ADMIN" : "USER";
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         passwordHash: hashedPassword,
         firstName: dto.firstName,
         lastName: dto.lastName,
+        role: assignedRole,
+        organizationUsers: {
+          create: {
+            role: "ADMIN",
+            organization: {
+              create: {
+                name: `${dto.firstName || "User"}'s Workspace`,
+                subscription: {
+                  create: {
+                    plan: "FREE",
+                    status: "ACTIVE"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     });
 
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const accessToken = await this.jwtService.signAsync(payload);
+
     return {
       message: "User registered successfully",
+      accessToken,
       user: {
         id: user.id,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
       },
     };
   }
@@ -83,6 +115,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        role: user.role,
       },
     };
   }

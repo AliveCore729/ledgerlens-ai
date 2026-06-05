@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import QueryProvider from '@/providers/query-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'LedgerLens AI',
@@ -14,13 +16,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="antialiased" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
-        {/* 2. Wrap children and Toaster with the QueryProvider */}
-        <QueryProvider>
-          {children}
-          <Toaster richColors position="top-right" /> 
-        </QueryProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased bg-background text-foreground" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <AuthProvider>
+              {children}
+              <Toaster richColors position="top-right" /> 
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

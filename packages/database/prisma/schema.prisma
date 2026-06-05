@@ -28,6 +28,8 @@ model Organization {
   updatedAt        DateTime           @updatedAt
   organizationUsers OrganizationUser[]
   statements       Statement[]
+  vendors          Vendor[]
+  subscription     Subscription?
 }
 
 model OrganizationUser {
@@ -98,4 +100,43 @@ model Transaction {
 
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+}
+
+model Vendor {
+  id                String       @id @default(uuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name              String
+  defaultCategory   String       @default("Misc")
+  totalTransactions Int          @default(0)
+  totalSpend        Float        @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([organizationId, name])
+}
+
+model Subscription {
+  id                  String       @id @default(uuid())
+  organizationId      String       @unique
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan                Plan         @default(FREE)
+  status              SubStatus    @default(ACTIVE)
+  statementsProcessed Int          @default(0)
+  currentPeriodStart  DateTime     @default(now())
+  currentPeriodEnd    DateTime     @default(now())
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubStatus {
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
 }

@@ -1,24 +1,36 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
-import { UploadCloud, File as FileIcon, X, CheckCircle } from "lucide-react";
+import { UploadCloud, File as FileIcon, X, CheckCircle, Loader2, Bot, Database, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import axios from "axios";
+import { uploadService } from "@/services/upload-service";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+
+const PROCESSING_STEPS = [
+  { id: "upload", label: "Uploading securely...", icon: UploadCloud },
+  { id: "parse", label: "Parsing document structure...", icon: Database },
+  { id: "extract", label: "Extracting transactions...", icon: FileIcon },
+  { id: "ai", label: "Running AI categorization...", icon: Bot },
+  { id: "reconcile", label: "Reconciling balances...", icon: Sparkles },
+];
 
 export function UploadZone() {
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [success, setSuccess] = useState(false);
+  const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "success">("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const router = useRouter();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setFile(acceptedFiles[0]);
-      setSuccess(false);
-      setProgress(0);
+      setStatus("idle");
+      setUploadProgress(0);
+      setCurrentStepIndex(0);
     }
   }, []);
 
@@ -26,111 +38,197 @@ export function UploadZone() {
     onDrop,
     accept: {
       "application/pdf": [".pdf"],
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
+      "text/csv": [".csv"],
+      "application/vnd.ms-excel": [".xls", ".xlsx"],
     },
     maxFiles: 1,
   });
 
-  const uploadFile = async () => {
+  const handleUploadAndProcess = async () => {
     if (!file) return;
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
+    setStatus("uploading");
+    
     try {
-      // Assuming you have an API route or proxy configured
-      await axios.post("http://localhost:3001/uploads/statement", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || file.size)
-          );
-          setProgress(percentCompleted);
-        },
+      // 1. Actual Upload
+      const response = await uploadService.uploadStatement(file, (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / (progressEvent.total || file.size)
+        );
+        setUploadProgress(percentCompleted);
       });
-      setSuccess(true);
-      toast.success("File uploaded successfully! It is now being processed.");
-    } catch (error) {
+
+      const statementId = response.statement.id;
+
+      // 2. Poll Backend for Status
+      setStatus("processing");
+      
+      let isCompleted = false;
+      let hasFailed = false;
+
+      while (!isCompleted && !hasFailed) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Poll every 2 seconds
+        
+        try {
+          const check = await uploadService.checkStatus(statementId);
+          
+          if (check.status === "PROCESSING") {
+            // Cycle through steps visually to show it's doing something
+            setCurrentStepIndex((prev) => Math.min(prev + 1, PROCESSING_STEPS.length - 2));
+          } else if (check.status === "COMPLETED") {
+            isCompleted = true;
+            setCurrentStepIndex(PROCESSING_STEPS.length - 1);
+          } else if (check.status === "FAILED") {
+            hasFailed = true;
+          }
+        } catch (e) {
+          console.error("Failed to check status", e);
+        }
+      }
+
+      if (hasFailed) {
+        throw new Error("Backend AI parsing failed.");
+      }
+
+      // 3. Success
+      setStatus("success");
+      toast.success("Statement processed successfully!");
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        router.push("/dashboard/statements");
+      }, 2000);
+
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to upload the file. Please try again.");
-    } finally {
-      setUploading(false);
+      toast.error(error?.message || error?.response?.data?.message || "Failed to process the statement. Please try again.");
+      setStatus("idle");
     }
   };
 
+  const removeFile = () => {
+    setFile(null);
+    setStatus("idle");
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4">
-      {!file ? (
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
-            isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"
-          }`}
-        >
-          <input {...getInputProps()} />
-          <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">Drag & drop your statement here</h3>
-          <p className="text-sm text-muted-foreground mt-2">
-            Supports PDF, JPG, PNG up to 10MB
-          </p>
-          <Button variant="secondary" className="mt-6">Browse Files</Button>
-        </div>
-      ) : (
-        <div className="border rounded-xl p-6 bg-card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-primary/10 rounded-lg text-primary">
-                <FileIcon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="font-medium text-sm truncate max-w-[200px] sm:max-w-[300px]">{file.name}</p>
-                <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
+    <div className="w-full max-w-2xl mx-auto">
+      <AnimatePresence mode="wait">
+        {!file ? (
+          <motion.div
+            key="dropzone"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ${
+              isDragActive 
+                ? "border-primary bg-primary/5 scale-[1.02]" 
+                : "border-border hover:border-primary/50 hover:bg-muted/50"
+            }`}
+          >
+            <input {...getInputProps()} />
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+              <UploadCloud className="w-8 h-8 text-primary" />
             </div>
-            {!uploading && !success && (
-              <Button variant="ghost" size="icon" onClick={() => setFile(null)}>
-                <X className="w-4 h-4" />
+            <h3 className="text-xl font-semibold mb-2">Drag & drop your statement</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+              Securely upload your bank statements. We support PDF, CSV, and Excel formats up to 50MB.
+            </p>
+            <Button variant="secondary" className="px-8">Browse Files</Button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="processing-card"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="border rounded-xl p-6 bg-card shadow-sm overflow-hidden relative"
+          >
+            {/* Background glowing effect during processing */}
+            {status === "processing" && (
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 via-primary to-emerald-400 animate-[shimmer_2s_linear_infinite] bg-[length:200%_100%]" />
+            )}
+
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-lg flex items-center justify-center ${
+                  status === "success" ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
+                }`}>
+                  {status === "success" ? <CheckCircle className="w-6 h-6" /> : <FileIcon className="w-6 h-6" />}
+                </div>
+                <div>
+                  <p className="font-medium text-sm truncate max-w-[200px] sm:max-w-[300px]">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                </div>
+              </div>
+              {status === "idle" && (
+                <Button variant="ghost" size="icon" onClick={removeFile} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            
+            {status === "uploading" && (
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between text-sm font-medium">
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Uploading securely...</span>
+                  <span className="text-primary">{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-2 bg-muted" />
+              </div>
+            )}
+
+            {status === "processing" && (
+              <div className="space-y-6 mb-6">
+                <div className="flex flex-col gap-4">
+                  {PROCESSING_STEPS.map((step, idx) => {
+                    const isCompleted = idx < currentStepIndex;
+                    const isActive = idx === currentStepIndex;
+                    const isPending = idx > currentStepIndex;
+                    
+                    return (
+                      <div key={step.id} className={`flex items-center gap-3 transition-opacity duration-300 ${isPending ? 'opacity-40' : 'opacity-100'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                          isCompleted ? 'bg-emerald-500/10 text-emerald-500' :
+                          isActive ? 'bg-primary/10 text-primary' :
+                          'bg-muted text-muted-foreground'
+                        }`}>
+                          {isCompleted ? <CheckCircle className="w-4 h-4" /> : 
+                           isActive ? <Loader2 className="w-4 h-4 animate-spin" /> :
+                           <step.icon className="w-4 h-4" />}
+                        </div>
+                        <span className={`text-sm font-medium ${isActive ? 'text-primary' : isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {status === "success" && (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle className="w-8 h-8 text-emerald-500" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Processing Complete</h3>
+                <p className="text-sm text-muted-foreground">Redirecting to statements...</p>
+              </div>
+            )}
+
+            {status === "idle" && (
+              <Button 
+                className="w-full h-11" 
+                onClick={handleUploadAndProcess}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Upload & Extract with AI
               </Button>
             )}
-            {success && <CheckCircle className="w-5 h-5 text-green-500" />}
-          </div>
-          
-          {uploading && (
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-xs">
-                <span>Uploading...</span>
-                <span>{progress}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-          )}
-
-          {!success ? (
-            <Button 
-              className="w-full" 
-              onClick={uploadFile} 
-              disabled={uploading}
-            >
-              {uploading ? "Uploading..." : "Upload & Process"}
-            </Button>
-          ) : (
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={() => {
-                setFile(null);
-                setSuccess(false);
-                setProgress(0);
-              }}
-            >
-              Upload Another File
-            </Button>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
