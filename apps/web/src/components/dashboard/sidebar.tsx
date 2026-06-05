@@ -2,27 +2,39 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, ReceiptText, LogOut, FileText, Sun } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  ReceiptText, 
+  LogOut, 
+  FileText, 
+  Sun,
+  Upload,
+  BrainCircuit,
+  Store,
+  PieChart,
+  Download,
+  Users,
+  CreditCard,
+  Activity,
+  Settings
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '../ui/button';
 
 const navItems = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    title: 'Statements',
-    href: '/dashboard/statements',
-    icon: FileText,
-  },
-  {
-    title: 'Transactions',
-    href: '/dashboard/transactions',
-    icon: ReceiptText,
-  },
+  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { title: 'Upload Statements', href: '/dashboard/upload', icon: Upload },
+  { title: 'Statements', href: '/dashboard/statements', icon: FileText },
+  { title: 'Transactions', href: '/dashboard/transactions', icon: ReceiptText },
+  { title: 'AI Categorization', href: '/dashboard/categorization', icon: BrainCircuit },
+  { title: 'Vendors', href: '/dashboard/vendors', icon: Store },
+  { title: 'Reports', href: '/dashboard/reports', icon: PieChart },
+  { title: 'Exports', href: '/dashboard/exports', icon: Download },
+  { title: 'Team Management', href: '/dashboard/team', icon: Users },
+  { title: 'Billing', href: '/dashboard/billing', icon: CreditCard },
+  { title: 'Audit Logs', href: '/dashboard/audit', icon: Activity },
+  { title: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -53,7 +65,7 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                 isActive 
                   ? "bg-[#3054ff]/10 text-[#b4c0ff] border border-[#3054ff]/20 shadow-[0_0_15px_rgba(48,84,255,0.1)]" 
                   : "text-white/60 hover:bg-white/5 hover:text-white border border-transparent"

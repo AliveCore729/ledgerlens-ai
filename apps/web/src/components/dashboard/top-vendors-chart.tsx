@@ -57,7 +57,7 @@ export default function TopVendorsChart({ data, isLoading }: TopVendorsChartProp
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-75 w-full">
+        <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={topVendors}

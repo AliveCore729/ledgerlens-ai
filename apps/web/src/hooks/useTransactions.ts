@@ -12,6 +12,9 @@ export interface TransactionFilters {
   startDate?: string;
   endDate?: string;
   statementId?: string | null;
+  minAmount?: string;
+  maxAmount?: string;
+  needsReview?: boolean;
 }
 
 export interface Transaction {
@@ -47,6 +50,9 @@ export const useTransactions = (filters: TransactionFilters, isProcessing?: bool
       if (!cleanFilters.search) delete cleanFilters.search;
       if (!cleanFilters.startDate) delete cleanFilters.startDate;
       if (!cleanFilters.endDate) delete cleanFilters.endDate;
+      if (!cleanFilters.minAmount) delete cleanFilters.minAmount;
+      if (!cleanFilters.maxAmount) delete cleanFilters.maxAmount;
+      if (cleanFilters.needsReview === false) delete cleanFilters.needsReview;
       
       // 🔥 The Fix: Ensure null/empty statement IDs aren't sent to the backend
       if (!cleanFilters.statementId || cleanFilters.statementId === 'null') {
@@ -75,6 +81,25 @@ export const useUpdateCategory = () => {
   });
 };
 
+export const useBulkUpdateCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ids, category }: { ids: string[]; category: string }) => {
+      // Execute sequentially or via a new bulk endpoint if it existed.
+      // Assuming no bulk endpoint exists in API yet, we can map over patch requests
+      await Promise.all(
+        ids.map((id) => api.patch(`/transactions/${id}/category`, { category }))
+      );
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+    },
+  });
+};
+
 export const exportTransactions = async (filters: TransactionFilters) => {
   const cleanFilters = { ...filters };
   if (cleanFilters.type === 'All') delete cleanFilters.type;
@@ -82,6 +107,9 @@ export const exportTransactions = async (filters: TransactionFilters) => {
   if (!cleanFilters.search) delete cleanFilters.search;
   if (!cleanFilters.startDate) delete cleanFilters.startDate;
   if (!cleanFilters.endDate) delete cleanFilters.endDate;
+  if (!cleanFilters.minAmount) delete cleanFilters.minAmount;
+  if (!cleanFilters.maxAmount) delete cleanFilters.maxAmount;
+  if (cleanFilters.needsReview === false) delete cleanFilters.needsReview;
   if (!cleanFilters.statementId || cleanFilters.statementId === 'null') {
     delete cleanFilters.statementId;
   }

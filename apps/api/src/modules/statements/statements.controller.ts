@@ -29,6 +29,20 @@ export class StatementsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async getStatement(@Param('id') id: string, @CurrentUser() user: any) {
+    const statement = await this.prisma.statement.findUnique({
+      where: { id }
+    });
+
+    if (!statement || statement.uploadedById !== user.userId) {
+      throw new ForbiddenException('Statement not found');
+    }
+
+    return statement;
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteStatement(@Param('id') id: string, @CurrentUser() user: any) {
     const statement = await this.prisma.statement.findUnique({

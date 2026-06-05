@@ -11,6 +11,10 @@ import { StatementsModule } from "./modules/statements/statements.module";
 import { IntelligenceModule } from "./modules/intelligence/intelligence.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { TransactionsModule } from "./modules/transactions/transactions.module";
+import { VendorsModule } from './modules/vendors/vendors.module';
+import { BillingModule } from './modules/billing/billing.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { TeamModule } from './modules/team/team.module';
 
 @Module({
   imports: [
@@ -33,7 +37,11 @@ import { TransactionsModule } from "./modules/transactions/transactions.module";
     StatementsModule,
     IntelligenceModule,
     AnalyticsModule,
-    TransactionsModule
+    TransactionsModule,
+    VendorsModule,
+    BillingModule,
+    AdminModule,
+    TeamModule
   ],
 })
 export class AppModule { }
