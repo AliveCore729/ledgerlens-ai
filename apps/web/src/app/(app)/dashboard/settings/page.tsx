@@ -36,8 +36,18 @@ export default function SettingsPage() {
     try {
       setIsSavingProfile(true);
       await settingsService.updateProfile({ firstName, lastName });
+      
+      // Update the auth store context
+      if (user) {
+        useAuthStore.getState().setUser({
+          ...user,
+          firstName,
+          lastName,
+          name: `${firstName} ${lastName}`.trim(),
+        });
+      }
+      
       toast.success("Profile updated successfully!");
-      // In a real app, we might also update the auth store context here
     } catch (error) {
       toast.error("Failed to update profile.");
     } finally {
@@ -49,6 +59,15 @@ export default function SettingsPage() {
     try {
       setIsSavingWorkspace(true);
       await settingsService.updateWorkspace({ name: workspaceName });
+      
+      // Update the auth store context
+      if (user) {
+        useAuthStore.getState().setUser({
+          ...user,
+          organizationName: workspaceName,
+        });
+      }
+      
       toast.success("Workspace updated successfully!");
     } catch (error) {
       toast.error("Failed to update workspace.");

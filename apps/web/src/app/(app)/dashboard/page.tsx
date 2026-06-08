@@ -8,6 +8,7 @@ import UploadPanel from '@/components/dashboard/upload-panel';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useStatements } from '@/hooks/useStatements';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function DashboardPage() {
 
@@ -47,17 +48,42 @@ export default function DashboardPage() {
   })).filter((item: any) => item.amount > 0); // Only visualize categories that actually have expenses
 
   return (
-    <div className="p-4 md:p-8 space-y-6 min-h-screen bg-background text-foreground">
-      <div className="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your financial statements and analysis.</p>
+    <div className="space-y-6">
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#111c2e] to-[#0f172a] border border-white/5 p-8 flex justify-between items-center shadow-lg">
+        <div className="relative z-10 space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-[#3054ff]/20 flex items-center justify-center border border-[#3054ff]/30">
+              <span className="text-xl font-bold text-white">
+                {useAuthStore.getState().user?.name?.charAt(0) || "U"}
+              </span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                Welcome back! {useAuthStore.getState().user?.name?.split(' ')[0] || "User"} 👋
+              </h1>
+              <p className="text-white/60">Check your reports</p>
+            </div>
+          </div>
         </div>
+        
+        {/* Decorative Image */}
+        <div className="absolute right-0 top-0 h-full w-1/3 max-w-[300px] hidden md:block opacity-80 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#0f172a]" />
+          <img 
+            src="/welcome-illustration.png" 
+            alt="Welcome Illustration" 
+            className="w-full h-full object-cover mix-blend-screen"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end w-full">
         <UploadPanel />
       </div>
 
       {isProcessing && (
-        <div className="bg-primary/10 border border-primary text-primary px-4 py-3 rounded-lg flex items-center gap-3 shadow-sm animate-pulse">
+        <div className="bg-[#3054ff]/10 border border-[#3054ff]/30 text-[#3054ff] px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm animate-pulse">
           <Loader2 className="h-5 w-5 animate-spin" />
           <p className="font-medium">Our AI is currently analyzing your uploaded statement. Your dashboard will update automatically in a few seconds...</p>
         </div>

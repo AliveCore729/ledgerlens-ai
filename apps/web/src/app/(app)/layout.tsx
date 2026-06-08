@@ -12,7 +12,7 @@ export default function AppLayout({
       <AppSidebar />
       <SidebarInset className="flex flex-col h-screen overflow-hidden">
         <TopNav />
-        <main className="flex-1 overflow-y-auto bg-muted/20 p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto bg-[#0a0a0a] p-4 md:p-6">
           {children}
         </main>
       </SidebarInset>

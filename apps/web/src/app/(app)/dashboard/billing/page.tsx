@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { billingService } from "@/services/billing-service";
+import { api } from "@/lib/api";
 
 export default function BillingPage() {
   const [sub, setSub] = useState<any>(null);
@@ -34,8 +35,22 @@ export default function BillingPage() {
     fetchSub();
   }, []);
 
-  const handleUpgrade = () => {
-    toast.info("Redirecting to Stripe checkout portal...");
+  const handleUpgrade = async () => {
+    try {
+      const { data } = await api.post('/billing/create-checkout', { priceId: 'price_pro_plan_123' });
+      window.location.href = data.url;
+    } catch (error) {
+      toast.error("Failed to redirect to checkout.");
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      const { data } = await api.post('/billing/create-portal');
+      window.location.href = data.url;
+    } catch (error) {
+      toast.error("Failed to redirect to billing portal.");
+    }
   };
 
   const planName = sub?.plan === "PRO" ? "Pro Plan" : "Basic Plan";
@@ -85,8 +100,8 @@ export default function BillingPage() {
             </div>
           </CardContent>
           <CardFooter className="bg-muted/30 pt-4 flex gap-4 border-t">
-            <Button variant="outline">Manage Subscription</Button>
-            <Button variant="outline">View Invoices</Button>
+            <Button variant="outline" onClick={handleManageSubscription}>Manage Subscription</Button>
+            <Button variant="outline" onClick={handleManageSubscription}>View Invoices</Button>
           </CardFooter>
         </Card>
 
@@ -107,7 +122,9 @@ export default function BillingPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" className="w-full text-primary">Update Payment Method <ArrowRight className="ml-2 h-4 w-4" /></Button>
+            <Button variant="ghost" className="w-full text-primary" onClick={handleManageSubscription}>
+              Update Payment Method <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </CardFooter>
         </Card>
       </div>
