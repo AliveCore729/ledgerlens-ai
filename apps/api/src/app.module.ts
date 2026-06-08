@@ -15,6 +15,7 @@ import { VendorsModule } from './modules/vendors/vendors.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { TeamModule } from './modules/team/team.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { TeamModule } from './modules/team/team.module';
     VendorsModule,
     BillingModule,
     AdminModule,
-    TeamModule
+    TeamModule,
+    AuditModule
   ],
 })
 export class AppModule { }

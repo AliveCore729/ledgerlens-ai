@@ -43,4 +43,16 @@ export class AdminService {
       orderBy: { createdAt: 'desc' }
     });
   }
+
+  async updateUserRole(id: string, role: string) {
+    // Only allow specific roles
+    if (!['USER', 'SUPER_ADMIN'].includes(role)) {
+      throw new Error("Invalid role");
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { role: role as any }
+    });
+  }
 }

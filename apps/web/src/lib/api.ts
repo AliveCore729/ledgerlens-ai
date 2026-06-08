@@ -32,8 +32,8 @@ api.interceptors.response.use(
       useAuthStore.getState().setUser(null as any);
 
       // Force redirect to login page
-      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+        window.location.href = '/';
       }
     }
     return Promise.reject(error);

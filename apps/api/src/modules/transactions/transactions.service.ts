@@ -104,7 +104,108 @@ export class TransactionsService {
     await this.findOne(id, userId);
     return this.prisma.transaction.update({
       where: { id },
-      data: { category: updateCategoryDto.category },
+      data: { 
+        category: updateCategoryDto.category,
+        isReviewed: true
+      },
+    });
+  }
+
+  async getReviewPending(userId: string) {
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        statement: { uploadedById: userId },
+        isReviewed: false,
+        category: { not: "UNCATEGORIZED" } // AI assigned something
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+    
+    return transactions.map(tx => ({
+        id: tx.id,
+        date: tx.date,
+        narration: tx.raw,
+        vendor: tx.vendor,
+        amount: tx.amount,
+        type: tx.type === 'CREDIT' ? 'CR' : 'DR',
+        category: tx.category,
+        statementId: tx.statementId
+    }));
+  }
+
+  async getCategorizationSummary(userId: string) {
+    // Fetch all transactions to group by category
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        statement: { uploadedById: userId },
+      },
+      orderBy: { date: 'desc' }
+    });
+
+    const summaryMap = new Map<string, {
+      category: string;
+      totalSpend: number;
+      transactionCount: number;
+      transactions: any[];
+    }>();
+
+    transactions.forEach(tx => {
+      const cat = tx.category || "UNCATEGORIZED";
+      if (!summaryMap.has(cat)) {
+        summaryMap.set(cat, {
+          category: cat,
+          totalSpend: 0,
+          transactionCount: 0,
+          transactions: []
+        });
+      }
+
+      const summary = summaryMap.get(cat)!;
+      summary.transactionCount++;
+      // Only count debit amount for total spend
+      if (tx.type === 'DEBIT') {
+        summary.totalSpend += tx.amount;
+      }
+      
+      summary.transactions.push({
+        id: tx.id,
+        date: tx.date,
+        narration: tx.raw,
+        vendor: tx.vendor,
+        amount: tx.amount,
+        type: tx.type === 'CREDIT' ? 'CR' : 'DR',
+        category: tx.category,
+        isReviewed: tx.isReviewed,
+        statementId: tx.statementId
+      });
+    });
+
+    return Array.from(summaryMap.values()).sort((a, b) => b.totalSpend - a.totalSpend);
+  }
+
+  async reviewTransaction(id: string, userId: string, category?: string) {
+    await this.findOne(id, userId);
+    const data: any = { isReviewed: true };
+    if (category) data.category = category;
+    
+    return this.prisma.transaction.update({
+      where: { id },
+      data
+    });
+  }
+
+  async bulkReview(userId: string, ids: string[]) {
+    // We ideally should verify ownership of all IDs, but for MVP we assume trusted input 
+    // or do a quick verification
+    return this.prisma.transaction.updateMany({
+      where: {
+        id: { in: ids },
+        statement: { uploadedById: userId }
+      },
+      data: {
+        isReviewed: true
+      }
     });
   }
 

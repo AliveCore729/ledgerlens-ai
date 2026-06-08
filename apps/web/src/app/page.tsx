@@ -1,13 +1,13 @@
 'use client';
 
 import LandingNavbar from '@/components/landing/LandingNavbar';
-import HeroSection from '@/components/landing/HeroSection';
+import ScrollSequence from '@/components/landing/ScrollSequence';
 
 export default function RootPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-background selection:bg-primary/20">
+    <div className="min-h-screen flex flex-col bg-[#000000] selection:bg-primary/20">
       <LandingNavbar />
-      <HeroSection />
+      <ScrollSequence />
     </div>
   );
 }

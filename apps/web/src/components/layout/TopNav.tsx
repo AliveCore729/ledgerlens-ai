@@ -86,7 +86,7 @@ export function TopNav() {
             <DropdownMenuItem onClick={() => {
               useAuthStore.getState().setToken("");
               useAuthStore.getState().setUser(null as any);
-              window.location.href = "/login";
+              window.location.href = "/";
             }}>
               Logout
             </DropdownMenuItem>

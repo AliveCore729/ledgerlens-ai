@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Building2, CreditCard, Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Users, Building2, CreditCard, Activity, ArrowUpRight, ArrowDownRight, DollarSign, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { adminService } from "@/services/admin-service";
 import { toast } from "sonner";

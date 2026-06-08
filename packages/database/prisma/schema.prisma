@@ -10,7 +10,8 @@ datasource db {
 model User {
   id               String             @id @default(uuid())
   email            String             @unique
-  passwordHash     String
+  passwordHash     String?
+  googleId         String?            @unique
   firstName        String?
   lastName         String?
   role             Role               @default(USER)
@@ -18,6 +19,7 @@ model User {
   updatedAt        DateTime           @updatedAt
   organizationUsers OrganizationUser[]
   statements       Statement[]
+  auditLogs        AuditLog[]
 }
 
 model Organization {
@@ -30,6 +32,7 @@ model Organization {
   statements       Statement[]
   vendors          Vendor[]
   subscription     Subscription?
+  auditLogs        AuditLog[]
 }
 
 model OrganizationUser {
@@ -97,6 +100,7 @@ model Transaction {
   normalizedVendor String?
   category         String       @default("UNCATEGORIZED")
   raw              String?      
+  isReviewed       Boolean      @default(false)
 
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
@@ -139,4 +143,15 @@ enum SubStatus {
   ACTIVE
   PAST_DUE
   SUSPENDED
+}
+
+model AuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action         String       // e.g., "STATEMENT_UPLOADED", "SETTINGS_UPDATED"
+  resource       String       // e.g., "Statement: 5555...pdf"
+  createdAt      DateTime     @default(now())
 }

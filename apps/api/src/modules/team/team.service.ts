@@ -76,4 +76,17 @@ export class TeamService {
 
     return { message: 'User invited successfully' };
   }
+
+  async updateOrganizationName(userId: string, name: string) {
+    const userOrg = await this.prisma.organizationUser.findFirst({
+      where: { userId, role: 'ADMIN' },
+    });
+
+    if (!userOrg) throw new BadRequestException('User is not an admin of any organization');
+
+    return this.prisma.organization.update({
+      where: { id: userOrg.organizationId },
+      data: { name },
+    });
+  }
 }
