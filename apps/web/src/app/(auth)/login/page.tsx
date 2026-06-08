@@ -31,8 +31,11 @@ export default function LoginPage() {
         setUser({
           id: response.user?.id || "user-id",
           email: response.user?.email || "user@example.com",
-          name: `${response.user?.firstName} ${response.user?.lastName}`.trim() || "User",
+          firstName: response.user?.firstName || "",
+          lastName: response.user?.lastName || "",
+          name: `${response.user?.firstName || ""} ${response.user?.lastName || ""}`.trim() || "User",
           role: response.user?.role || "USER",
+          organizationName: response.user?.organization?.name || "",
         })
         
         toast.success("Successfully logged in!")

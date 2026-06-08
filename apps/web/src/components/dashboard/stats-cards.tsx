@@ -1,9 +1,9 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
-import { Activity, ArrowDownRight, ArrowUpRight, DollarSign } from 'lucide-react';
+import { Activity, ArrowDownRight, ArrowUpRight, DollarSign, Store, FileText } from 'lucide-react';
 import { AnimatedCounter } from '@/components/ui/animated-counter';
 import { motion } from 'framer-motion';
 
@@ -20,19 +20,14 @@ interface StatsCardsProps {
 }
 
 export default function StatsCards({ data, isLoading }: StatsCardsProps) {
-  // TASK 6: Show 4 skeleton cards when loading
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-4 rounded-full" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-28 mb-1" />
-            </CardContent>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="bg-[#1a1f2c] border-white/5 shadow-md flex flex-col items-center justify-center p-6 h-[160px]">
+            <Skeleton className="h-10 w-10 rounded-full mb-4 bg-white/10" />
+            <Skeleton className="h-4 w-20 mb-2 bg-white/10" />
+            <Skeleton className="h-6 w-16 bg-white/10" />
           </Card>
         ))}
       </div>
@@ -51,7 +46,7 @@ export default function StatsCards({ data, isLoading }: StatsCardsProps) {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
+      transition: { staggerChildren: 0.05 }
     }
   };
 
@@ -65,89 +60,83 @@ export default function StatsCards({ data, isLoading }: StatsCardsProps) {
       variants={container} 
       initial="hidden" 
       animate="show" 
-      className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
     >
+      {/* 1. Net Cash Flow / Payroll */}
       <motion.div variants={item}>
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Income
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-              <ArrowUpRight className="h-4 w-4 text-emerald-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tracking-tight">
-              <AnimatedCounter value={totalIncome} format={(v) => formatCurrency(v)} />
-            </div>
-            <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1 font-medium">
-              <ArrowUpRight className="h-3 w-3" /> +12.5% from last month
-            </p>
-          </CardContent>
+        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
+          <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
+            <DollarSign className="h-6 w-6 text-blue-400" />
+          </div>
+          <p className="text-sm font-medium text-blue-400 mb-1">Net Flow</p>
+          <div className="text-xl font-bold tracking-tight text-white">
+            <AnimatedCounter value={netBalance} format={(v) => formatCurrency(v)} />
+          </div>
         </Card>
       </motion.div>
 
+      {/* 2. Total Income / Clients */}
       <motion.div variants={item}>
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Expenses
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-red-500/10 flex items-center justify-center">
-              <ArrowDownRight className="h-4 w-4 text-red-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tracking-tight">
-              <AnimatedCounter value={totalExpenses} format={(v) => formatCurrency(v)} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">
-              Compared to previous period
-            </p>
-          </CardContent>
+        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
+          <div className="h-12 w-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
+            <ArrowUpRight className="h-6 w-6 text-emerald-400" />
+          </div>
+          <p className="text-sm font-medium text-emerald-400 mb-1">Income</p>
+          <div className="text-xl font-bold tracking-tight text-white">
+            <AnimatedCounter value={totalIncome} format={(v) => formatCurrency(v)} />
+          </div>
         </Card>
       </motion.div>
 
+      {/* 3. Total Expenses / Projects */}
       <motion.div variants={item}>
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Net Cash Flow
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center">
-              <DollarSign className="h-4 w-4 text-indigo-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-primary">
-              <AnimatedCounter value={netBalance} format={(v) => formatCurrency(v)} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">
-              Available liquidity
-            </p>
-          </CardContent>
+        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
+          <div className="h-12 w-12 rounded-full bg-rose-500/20 flex items-center justify-center mb-4">
+            <ArrowDownRight className="h-6 w-6 text-rose-400" />
+          </div>
+          <p className="text-sm font-medium text-rose-400 mb-1">Expenses</p>
+          <div className="text-xl font-bold tracking-tight text-white">
+            <AnimatedCounter value={totalExpenses} format={(v) => formatCurrency(v)} />
+          </div>
         </Card>
       </motion.div>
 
+      {/* 4. Transactions / Events */}
       <motion.div variants={item}>
-        <Card className="shadow-sm border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Transactions
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <Activity className="h-4 w-4 text-blue-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tracking-tight">
-              <AnimatedCounter value={totalTransactions} format={(v) => Math.round(v).toLocaleString()} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">
-              Processed entries
-            </p>
-          </CardContent>
+        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
+          <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
+            <Activity className="h-6 w-6 text-purple-400" />
+          </div>
+          <p className="text-sm font-medium text-purple-400 mb-1">Entries</p>
+          <div className="text-xl font-bold tracking-tight text-white">
+            <AnimatedCounter value={totalTransactions} format={(v) => Math.round(v).toLocaleString()} />
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* 5. Placeholder 1: Vendors */}
+      <motion.div variants={item}>
+        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
+          <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-4">
+            <Store className="h-6 w-6 text-orange-400" />
+          </div>
+          <p className="text-sm font-medium text-orange-400 mb-1">Vendors</p>
+          <div className="text-xl font-bold tracking-tight text-white">
+            <AnimatedCounter value={42} format={(v) => Math.round(v).toLocaleString()} />
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* 6. Placeholder 2: Reports */}
+      <motion.div variants={item}>
+        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
+          <div className="h-12 w-12 rounded-full bg-cyan-500/20 flex items-center justify-center mb-4">
+            <FileText className="h-6 w-6 text-cyan-400" />
+          </div>
+          <p className="text-sm font-medium text-cyan-400 mb-1">Reports</p>
+          <div className="text-xl font-bold tracking-tight text-white">
+            <AnimatedCounter value={12} format={(v) => Math.round(v).toLocaleString()} />
+          </div>
         </Card>
       </motion.div>
     </motion.div>

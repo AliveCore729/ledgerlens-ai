@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
+import { motion } from "framer-motion"
 import {
   Activity,
   BarChart3,
@@ -12,7 +14,11 @@ import {
   UploadCloud,
   Users,
   Wallet,
+  Search,
+  ChevronsUpDown
 } from "lucide-react"
+
+import { usePathname } from "next/navigation"
 
 import {
   Sidebar,
@@ -24,17 +30,26 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter
 } from "@/components/ui/sidebar"
+import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import { useAuthStore } from "@/store/auth-store"
+import { cn } from "@/lib/utils"
 
 const data = {
   navMain: [
     { title: "Dashboard", url: "/dashboard", icon: Home },
     { title: "Statements", url: "/dashboard/statements", icon: FileText },
-    { title: "Upload Statements", url: "/dashboard/upload", icon: UploadCloud },
     { title: "Categorization", url: "/dashboard/categorization", icon: BarChart3 },
-    { title: "Vendors", url: "/dashboard/vendors", icon: Users },
   ],
   navAdmin: [
     { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
@@ -45,78 +60,128 @@ const data = {
 
 export function AppSidebar() {
   const user = useAuthStore((state) => state.user)
+  const pathname = usePathname()
+  
+  const isStatementsPage = pathname?.startsWith('/dashboard/statements');
+  const activeIndicatorClass = isStatementsPage 
+    ? "bg-[#1C1C1E] shadow-[inset_-24px_0px_32px_-12px_rgba(255,84,27,0.4)] border-[#FF541B]"
+    : "bg-[#1C1C1E] shadow-[inset_-24px_0px_32px_-12px_rgba(48,84,255,0.4)] border-[#3054ff]";
 
   return (
-    <Sidebar className="border-r border-white/5 bg-black/40 backdrop-blur-xl">
-      <SidebarHeader>
-        <div className="flex h-12 items-center px-4 font-semibold text-lg text-primary">
-          <Wallet className="mr-2 h-6 w-6" />
-          LedgerLens AI
+    <Sidebar className="border-r border-white/5 bg-[#0d1117] text-white/60">
+      <SidebarHeader className="p-4 space-y-4">
+        <div className="flex h-12 items-center px-2 font-bold text-xl tracking-tight text-white gap-3">
+          <div className={cn(
+            "h-8 w-8 rounded-full flex items-center justify-center transition-all duration-500",
+            isStatementsPage ? "bg-gradient-to-tr from-[#FF541B] to-[#FF8C00]" : "bg-gradient-to-tr from-[#3054ff] to-[#00d2ff]"
+          )}>
+            <Wallet className="h-4 w-4 text-white" />
+          </div>
+          LedgerLens
+        </div>
+
+        <div className="relative px-2">
+          <Search className="absolute left-4 top-2.5 h-4 w-4 text-white/40 pointer-events-none" />
+          <Input
+            type="search"
+            placeholder="Search..."
+            className="pl-8 bg-[#1a1a1a] border-white/10 text-white placeholder:text-white/40 rounded-xl h-9 w-full"
+          />
         </div>
       </SidebarHeader>
-      <SidebarContent>
+
+      <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white/40 uppercase tracking-widest text-[10px] font-bold px-4 mb-2 mt-2">Home</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {data.navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="gap-1">
+              {data.navMain.map((item) => {
+                const isActive = pathname === item.url || (pathname?.startsWith(item.url) && item.url !== '/dashboard');
+                return (
+                  <SidebarMenuItem key={item.title} className="relative">
+                    {isActive && (
+                      <motion.div
+                        layoutId="sidebar-active-indicator"
+                        className={cn("absolute inset-0 rounded-xl border-r-2", activeIndicatorClass)}
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                      />
+                    )}
+                    <SidebarMenuButton asChild className={cn(
+                      "relative z-10 transition-all rounded-xl h-11 px-4 duration-300",
+                      isActive ? "text-white hover:bg-transparent" : "hover:bg-white/5 hover:text-white"
+                    )}>
+                      <Link href={item.url}>
+                        <item.icon className={cn("mr-3 h-5 w-5 transition-colors", isActive ? "text-white" : "text-white/50")} />
+                        <span className="font-medium text-[15px]">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Administration</SidebarGroupLabel>
+        
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-white/40 uppercase tracking-widest text-[10px] font-bold px-4 mb-2">Pages</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {data.navAdmin.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="gap-1">
+              {data.navAdmin.map((item) => {
+                const isActive = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title} className="relative">
+                    {isActive && (
+                      <motion.div
+                        layoutId="sidebar-active-indicator"
+                        className={cn("absolute inset-0 rounded-xl border-r-2", activeIndicatorClass)}
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                      />
+                    )}
+                    <SidebarMenuButton asChild className={cn(
+                      "relative z-10 transition-all rounded-xl h-11 px-4 duration-300",
+                      isActive ? "text-white hover:bg-transparent" : "hover:bg-white/5 hover:text-white"
+                    )}>
+                      <Link href={item.url}>
+                        <item.icon className={cn("mr-3 h-5 w-5 transition-colors", isActive ? "text-white" : "text-white/50")} />
+                        <span className="font-medium text-[15px]">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         
         {user?.role === "SUPER_ADMIN" && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-primary font-semibold">Super Admin Console</SidebarGroupLabel>
+          <SidebarGroup className="mt-4">
+            <SidebarGroupLabel className="text-emerald-400/80 uppercase tracking-widest text-[10px] font-bold px-4 mb-2">Apps</SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="gap-1">
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild className="bg-primary/10 text-primary hover:bg-primary/20">
-                    <a href="/dashboard/admin">
-                      <ShieldAlert />
-                      <span>Platform Metrics</span>
-                    </a>
+                  <SidebarMenuButton asChild className="hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-xl h-11 px-4">
+                    <Link href="/dashboard/admin">
+                      <ShieldAlert className="mr-3 h-5 w-5 text-emerald-400/50" />
+                      <span className="font-medium text-[15px]">Platform Metrics</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <a href="/dashboard/admin/organizations">
-                      <Users />
-                      <span>Organizations</span>
-                    </a>
+                  <SidebarMenuButton asChild className="hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-xl h-11 px-4">
+                    <Link href="/dashboard/admin/organizations">
+                      <Users className="mr-3 h-5 w-5 text-emerald-400/50" />
+                      <span className="font-medium text-[15px]">Organizations</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <a href="/dashboard/admin/users">
-                      <Users />
-                      <span>Global Users</span>
-                    </a>
+                  <SidebarMenuButton asChild className="hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-xl h-11 px-4">
+                    <Link href="/dashboard/admin/users">
+                      <Users className="mr-3 h-5 w-5 text-emerald-400/50" />
+                      <span className="font-medium text-[15px]">Global Users</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -124,6 +189,46 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
       </SidebarContent>
+
+      <SidebarFooter className="p-4 mb-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#1C1C1E] border border-white/5 cursor-pointer hover:bg-white/5 transition-colors">
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" 
+                alt="User Avatar" 
+                className="h-9 w-9 rounded-full object-cover border border-white/10"
+              />
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-medium text-white truncate">{user?.firstName} {user?.lastName || 'Admin'}</p>
+                <p className="text-xs text-white/40 truncate">{user?.email}</p>
+              </div>
+              <ChevronsUpDown className="h-4 w-4 text-white/40" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="right" sideOffset={12} className="w-56 bg-[#1a1a1a] border-white/10 text-white rounded-xl">
+            <DropdownMenuLabel className="text-white/40">My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white cursor-pointer">
+              <Link href="/dashboard/settings">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white cursor-pointer">
+              <Link href="/dashboard/billing">Billing</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem 
+              className="focus:bg-white/10 focus:text-white cursor-pointer text-red-400 focus:text-red-300"
+              onClick={() => {
+                useAuthStore.getState().setToken("");
+                useAuthStore.getState().setUser(null as any);
+                window.location.href = "/";
+              }}
+            >
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

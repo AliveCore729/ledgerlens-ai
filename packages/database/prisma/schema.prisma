@@ -124,6 +124,10 @@ model Subscription {
   id                  String       @id @default(uuid())
   organizationId      String       @unique
   organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  stripeCustomerId    String?      @unique
+  stripeSubscriptionId String?     @unique
+  
   plan                Plan         @default(FREE)
   status              SubStatus    @default(ACTIVE)
   statementsProcessed Int          @default(0)

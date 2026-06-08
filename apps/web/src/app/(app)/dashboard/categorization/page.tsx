@@ -162,7 +162,7 @@ export default function CategorizationPage() {
                               {tx.type === 'CR' ? '+' : '-'}{formatCurrency(tx.amount)}
                             </TableCell>
                             <TableCell>
-                              {tx.isReviewed ? (
+                              {(tx as any).isReviewed ? (
                                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1">
                                   <Check className="h-3 w-3" /> Reviewed
                                 </Badge>
@@ -189,7 +189,7 @@ export default function CategorizationPage() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                                 
-                                {!tx.isReviewed && (
+                                {!(tx as any).isReviewed && (
                                   <Button size="sm" variant="ghost" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => handleApprove(tx.id)}>
                                     <Check className="mr-1 h-4 w-4" />
                                     Approve
