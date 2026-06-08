@@ -53,6 +53,16 @@ export class UploadsService {
       // Queue OCR Job
       await this.ocrQueue.add('process-statement', { statementId: statement.id });
 
+      // Create Audit Log
+      await this.prisma.auditLog.create({
+        data: {
+          organizationId: org.id,
+          userId: user.userId,
+          action: 'STATEMENT_UPLOADED',
+          resource: `Statement: ${file.originalname}`,
+        }
+      });
+
       return {
         message: 'Statement uploaded and queued for processing successfully',
         statement,

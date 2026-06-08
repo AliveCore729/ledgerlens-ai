@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 export default function LandingNavbar() {
   const token = useAuthStore((state) => state.token);
+  const openAuthModal = useAuthStore((state) => state.openAuthModal);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,32 +24,37 @@ export default function LandingNavbar() {
         </span>
       </div>
 
-      <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/80" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
-        <Link href="#features" className="hover:text-white transition-colors flex items-center gap-1">
-          Features <ChevronDown className="h-4 w-4" />
-        </Link>
-        <Link href="#banks" className="hover:text-white transition-colors">
-          Supported Banks
-        </Link>
-        <Link href="#docs" className="hover:text-white transition-colors">
-          Documentation
-        </Link>
-        <Link href="#pricing" className="hover:text-white transition-colors">
-          Pricing
-        </Link>
-      </div>
+      {/* Center navigation links removed as requested */}
 
       <div className="flex items-center gap-4">
-        <Link href="/book" className="hidden sm:block text-white/80 hover:text-white text-sm font-medium transition-colors" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
-          Book A Demo
-        </Link>
+        {mounted && !token && (
+          <button 
+            onClick={openAuthModal}
+            className="hidden sm:block text-white/80 hover:text-white text-sm font-medium transition-colors" 
+            style={{ fontFamily: '"Instrument Sans", sans-serif' }}
+          >
+            Start Free Trial
+          </button>
+        )}
         
         {mounted && (
-          <Link href={token ? "/dashboard" : "/register"}>
-            <button className="bg-white text-black rounded-full px-5 py-2.5 font-semibold text-sm hover:bg-white/90 transition-colors" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
-              {token ? "Dashboard" : "Get Started"}
-            </button>
-          </Link>
+          <div className="flex gap-4">
+            {token ? (
+              <Link href="/dashboard">
+                <button className="px-6 py-2.5 rounded-full font-semibold bg-white hover:bg-white/90 text-black transition-colors" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
+                  Go to Dashboard
+                </button>
+              </Link>
+            ) : (
+              <button 
+                onClick={openAuthModal}
+                className="px-6 py-2.5 rounded-full font-semibold bg-white hover:bg-white/90 text-black transition-colors shadow-[0_0_20px_rgba(255,255,255,0.2)]" 
+                style={{ fontFamily: '"Instrument Sans", sans-serif' }}
+              >
+                Get Started
+              </button>
+            )}
+          </div>
         )}
       </div>
     </nav>

@@ -33,10 +33,8 @@ const data = {
     { title: "Dashboard", url: "/dashboard", icon: Home },
     { title: "Statements", url: "/dashboard/statements", icon: FileText },
     { title: "Upload Statements", url: "/dashboard/upload", icon: UploadCloud },
-    { title: "AI Categorization", url: "/dashboard/ai-categorization", icon: BarChart3 },
+    { title: "Categorization", url: "/dashboard/categorization", icon: BarChart3 },
     { title: "Vendors", url: "/dashboard/vendors", icon: Users },
-    { title: "Reports", url: "/dashboard/reports", icon: FileText },
-    { title: "Exports", url: "/dashboard/exports", icon: FileText },
   ],
   navAdmin: [
     { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
@@ -49,7 +47,7 @@ export function AppSidebar() {
   const user = useAuthStore((state) => state.user)
 
   return (
-    <Sidebar>
+    <Sidebar className="border-r border-white/5 bg-black/40 backdrop-blur-xl">
       <SidebarHeader>
         <div className="flex h-12 items-center px-4 font-semibold text-lg text-primary">
           <Wallet className="mr-2 h-6 w-6" />

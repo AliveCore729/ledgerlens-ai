@@ -1,5 +1,5 @@
 import express from 'express';
-import { Controller, Get, Patch, Body, Param, Query, UseGuards, StreamableFile, Res } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, Param, Query, UseGuards, StreamableFile, Res } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { QueryTransactionsDto } from './dto/query-transactions.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -17,6 +17,30 @@ export class TransactionsController {
     @Query() query: QueryTransactionsDto,
   ) {
     return this.transactionsService.findAll(user.userId, query);
+  }
+
+  @Get('review')
+  getReviewPending(@CurrentUser() user: any) {
+    return this.transactionsService.getReviewPending(user.userId);
+  }
+
+  @Get('categorization-summary')
+  getCategorizationSummary(@CurrentUser() user: any) {
+    return this.transactionsService.getCategorizationSummary(user.userId);
+  }
+
+  @Post('bulk-review')
+  bulkReview(@CurrentUser() user: any, @Body() body: { ids: string[] }) {
+    return this.transactionsService.bulkReview(user.userId, body.ids);
+  }
+
+  @Patch(':id/review')
+  reviewTransaction(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Body() body: { category?: string }
+  ) {
+    return this.transactionsService.reviewTransaction(id, user.userId, body.category);
   }
 
   @Get('export')

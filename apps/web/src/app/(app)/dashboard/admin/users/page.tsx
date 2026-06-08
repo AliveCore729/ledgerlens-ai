@@ -50,6 +50,16 @@ export default function GlobalUsersPage() {
     u.email.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      await adminService.updateUserRole(userId, newRole);
+      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      toast.success("User role updated successfully");
+    } catch (error) {
+      toast.error("Failed to update user role");
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6 min-h-screen bg-background text-foreground">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -77,7 +87,7 @@ export default function GlobalUsersPage() {
                 <TableHead>User</TableHead>
                 <TableHead>Organization</TableHead>
                 <TableHead>System Role</TableHead>
-                <TableHead>Last Login</TableHead>
+                <TableHead>Joined</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -120,8 +130,15 @@ export default function GlobalUsersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Send Password Reset</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Force Logout</DropdownMenuItem>
+                        {user.role === 'USER' ? (
+                          <DropdownMenuItem onClick={() => handleRoleChange(user.id, 'SUPER_ADMIN')}>
+                            Promote to Super Admin
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onClick={() => handleRoleChange(user.id, 'USER')} className="text-destructive">
+                            Demote to User
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

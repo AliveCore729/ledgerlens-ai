@@ -128,3 +128,62 @@ export const exportTransactions = async (filters: TransactionFilters) => {
   link.remove();
   window.URL.revokeObjectURL(url);
 };
+
+export const useTransactionsReview = () => {
+  return useQuery<Transaction[]>({
+    queryKey: ['transactions-review'],
+    queryFn: async () => {
+      const { data } = await api.get('/transactions/review');
+      return data;
+    },
+  });
+};
+
+export interface CategorizationSummary {
+  category: string;
+  totalSpend: number;
+  transactionCount: number;
+  transactions: Transaction[];
+}
+
+export const useCategorizationSummary = () => {
+  return useQuery<CategorizationSummary[]>({
+    queryKey: ['categorization-summary'],
+    queryFn: async () => {
+      const { data } = await api.get('/transactions/categorization-summary');
+      return data;
+    },
+  });
+};
+
+export const useReviewTransaction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, category }: { id: string; category?: string }) => {
+      const { data } = await api.patch(`/transactions/${id}/review`, { category });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions-review'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+    },
+  });
+};
+
+export const useBulkReviewTransactions = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ids }: { ids: string[] }) => {
+      const { data } = await api.post('/transactions/bulk-review', { ids });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions-review'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+    },
+  });
+};

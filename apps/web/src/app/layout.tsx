@@ -4,10 +4,12 @@ import { Toaster } from '@/components/ui/sonner';
 import QueryProvider from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import AuthModal from '@/components/auth/AuthModal';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
   title: 'LedgerLens AI',
-  description: 'Enterprise fintech SaaS for bank statement analysis',
+  description: 'Enterprise fintech SaaS for bank statement analysis and categorization.',
 };
 
 export default function RootLayout({
@@ -20,17 +22,20 @@ export default function RootLayout({
       <body className="antialiased bg-background text-foreground" style={{ fontFamily: '"Instrument Sans", sans-serif' }}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          forcedTheme="dark"
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <AuthProvider>
-              {children}
-              <Toaster richColors position="top-right" /> 
-            </AuthProvider>
-          </QueryProvider>
+          <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+            <QueryProvider>
+              <AuthProvider>
+                {children}
+                <AuthModal />
+              </AuthProvider>
+            </QueryProvider>
+          </GoogleOAuthProvider>
         </ThemeProvider>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );

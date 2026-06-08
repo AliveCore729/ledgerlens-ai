@@ -29,8 +29,6 @@ const navItems = [
   { title: 'Transactions', href: '/dashboard/transactions', icon: ReceiptText },
   { title: 'AI Categorization', href: '/dashboard/categorization', icon: BrainCircuit },
   { title: 'Vendors', href: '/dashboard/vendors', icon: Store },
-  { title: 'Reports', href: '/dashboard/reports', icon: PieChart },
-  { title: 'Exports', href: '/dashboard/exports', icon: Download },
   { title: 'Team Management', href: '/dashboard/team', icon: Users },
   { title: 'Billing', href: '/dashboard/billing', icon: CreditCard },
   { title: 'Audit Logs', href: '/dashboard/audit', icon: Activity },
@@ -45,7 +43,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push('/');
   };
 
   return (

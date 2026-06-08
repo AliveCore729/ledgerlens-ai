@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Patch } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -16,5 +16,10 @@ export class TeamController {
   @Post('invite')
   inviteMember(@CurrentUser() user: any, @Body() body: { email: string, role: string }) {
     return this.teamService.inviteMember(user.userId, body.email, body.role);
+  }
+
+  @Patch('organization')
+  updateOrganization(@CurrentUser() user: any, @Body() body: { name: string }) {
+    return this.teamService.updateOrganizationName(user.userId, body.name);
   }
 }

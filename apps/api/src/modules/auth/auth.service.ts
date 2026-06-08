@@ -1,122 +1,116 @@
 import {
-  BadRequestException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
 
 import { JwtService } from "@nestjs/jwt";
-import * as bcrypt from "bcrypt";
+import { OAuth2Client } from "google-auth-library";
 
 import { PrismaService } from "../prisma/prisma.service";
 
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
-
 @Injectable()
 export class AuthService {
+  private googleClient: OAuth2Client;
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) { }
+  ) { 
+    this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
 
-  async register(dto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-    });
+  async google(credential: string) {
+    try {
+      // credential is now the access_token from useGoogleLogin
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${credential}` },
+      });
+      
+      if (!response.ok) {
+        throw new UnauthorizedException("Failed to fetch Google user info");
+      }
 
-    if (existingUser) {
-      throw new BadRequestException("User already exists");
-    }
+      const payload = await response.json();
+      
+      if (!payload || !payload.email) {
+        throw new UnauthorizedException("Invalid Google token payload");
+      }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 12);
+      const email = payload.email;
+      const firstName = payload.given_name || payload.name?.split(" ")[0] || "User";
+      const lastName = payload.family_name || payload.name?.split(" ").slice(1).join(" ") || "";
+      const googleId = payload.sub;
 
-    const userCount = await this.prisma.user.count();
-    const assignedRole = userCount === 0 ? "SUPER_ADMIN" : "USER";
+      let user = await this.prisma.user.findUnique({
+        where: { email },
+      });
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        passwordHash: hashedPassword,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        role: assignedRole,
-        organizationUsers: {
-          create: {
-            role: "ADMIN",
-            organization: {
+      if (!user) {
+        // Enforce the hardcoded super admin rule
+        const assignedRole = email === "sj772299@gmail.com" ? "SUPER_ADMIN" : "USER";
+
+        user = await this.prisma.user.create({
+          data: {
+            email,
+            firstName,
+            lastName,
+            googleId,
+            role: assignedRole,
+            organizationUsers: {
               create: {
-                name: `${dto.firstName || "User"}'s Workspace`,
-                subscription: {
+                role: "ADMIN",
+                organization: {
                   create: {
-                    plan: "FREE",
-                    status: "ACTIVE"
+                    name: `${firstName}'s Workspace`,
+                    subscription: {
+                      create: {
+                        plan: "FREE",
+                        status: "ACTIVE"
+                      }
+                    }
                   }
                 }
               }
             }
-          }
-        }
-      },
-    });
+          },
+        });
+      } else if (!user.googleId) {
+        // Link googleId to existing user
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { googleId },
+        });
+      }
+      
+      // Ensure the hardcoded rule applies even to existing user
+      if (email === "sj772299@gmail.com" && user.role !== "SUPER_ADMIN") {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { role: "SUPER_ADMIN" },
+        });
+      }
 
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-    const accessToken = await this.jwtService.signAsync(payload);
-
-    return {
-      message: "User registered successfully",
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-    };
-  }
-
-  async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException("Invalid credentials");
-    }
-
-    const isPasswordValid = await bcrypt.compare(
-      dto.password,
-      user.passwordHash,
-    );
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException("Invalid credentials");
-    }
-
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-    const accessToken = await this.jwtService.signAsync(payload);
-
-    return {
-      accessToken,
-      user: {
-        id: user.id,
+      const jwtPayload = {
+        sub: user.id,
         email: user.email,
         role: user.role,
-      },
-    };
+      };
+
+      const accessToken = await this.jwtService.signAsync(jwtPayload);
+
+      return {
+        accessToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      console.error("Google Auth Error:", error);
+      throw new UnauthorizedException("Invalid Google credential");
+    }
   }
 }
