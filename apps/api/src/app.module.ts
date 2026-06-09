@@ -1,7 +1,7 @@
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { envValidationSchema } from './common/config/env.validation';
 import { HealthModule } from "./modules/health/health.module";
 import { AuthModule } from "./modules/auth/auth.module";
