@@ -21,16 +21,13 @@ export class AuthService {
 
   async google(credential: string) {
     try {
-      // credential is now the access_token from useGoogleLogin
-      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: `Bearer ${credential}` },
+      // credential is the ID token from <GoogleLogin>
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
       });
-      
-      if (!response.ok) {
-        throw new UnauthorizedException("Failed to fetch Google user info");
-      }
 
-      const payload = await response.json();
+      const payload = ticket.getPayload();
       
       if (!payload || !payload.email) {
         throw new UnauthorizedException("Invalid Google token payload");
