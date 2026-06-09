@@ -4,10 +4,9 @@ import { toast } from 'sonner';
 
 export interface Statement {
   id: string;
-  originalName: string;
-  filename: string;
+  fileName: string;
   status: string;
-  uploadedAt: string;
+  createdAt: string;
   _count: {
     transactions: number;
   };
