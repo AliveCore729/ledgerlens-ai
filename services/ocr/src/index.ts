@@ -36,7 +36,7 @@ const worker = new Worker(
       throw new Error(`Statement ${statementId} not found`);
     }
 
-    let tempFilePath: string | null = null;
+    let tempFilePath: string = '';
     const fs = require('fs');
     const path = require('path');
     const crypto = require('crypto');
