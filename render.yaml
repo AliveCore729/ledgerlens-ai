@@ -1,9 +1,3 @@
-databases:
-  - name: ledgerlens-db
-    databaseName: ledgerlens
-    user: ledgerlens_user
-    plan: free
-
 services:
   # The NestJS Backend API
   - type: web
@@ -13,9 +7,7 @@ services:
     startCommand: cd apps/api && pnpm run start:prod
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: ledgerlens-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: PORT
@@ -27,22 +19,4 @@ services:
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-
-  # The Background OCR Worker
-  - type: worker
-    name: ledgerlens-ocr-worker
-    env: node
-    buildCommand: pnpm install && cd services/ocr && pnpm run build
-    startCommand: cd services/ocr && pnpm run start
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: ledgerlens-db
-          property: connectionString
-      - key: RABBITMQ_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: GEMINI_API_KEY
         sync: false
