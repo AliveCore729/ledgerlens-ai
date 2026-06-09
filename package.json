@@ -12,7 +12,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
-    "postinstall": "if [ \"$RENDER\" = \"true\" ]; then cd packages/database && npx prisma generate; fi"
+    "postinstall": "if [ \"$RENDER\" = \"true\" ]; then cd packages/database && npx prisma generate && npx prisma db push; fi"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
