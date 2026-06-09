@@ -1,4 +1,4 @@
-import express from 'express';
+import type { Response } from 'express';
 import { Controller, Get, Patch, Post, Body, Param, Query, UseGuards, StreamableFile, Res } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { QueryTransactionsDto } from './dto/query-transactions.dto';
@@ -47,7 +47,7 @@ export class TransactionsController {
   async export(
     @CurrentUser() user: any,
     @Query() query: QueryTransactionsDto,
-    @Res({ passthrough: true }) res: express.Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const csvString = await this.transactionsService.getExportData(user.userId, query);
     const filename = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
