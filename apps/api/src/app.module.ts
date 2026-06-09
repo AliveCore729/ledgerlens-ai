@@ -24,11 +24,29 @@ import { AuditModule } from './modules/audit/audit.module';
       envFilePath: "../../.env",
       validationSchema: envValidationSchema,
     }),
-    BullModule.forRoot({
-      connection: {
-        host: 'localhost',
-        port: 6379,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
+        if (redisUrl) {
+          const url = new URL(redisUrl);
+          return {
+            connection: {
+              host: url.hostname,
+              port: parseInt(url.port, 10) || 6379,
+              username: url.username || undefined,
+              password: url.password || undefined,
+            },
+          };
+        }
+        return {
+          connection: {
+            host: 'localhost',
+            port: 6379,
+          },
+        };
       },
+      inject: [ConfigService],
     }),
     PrismaModule,
     HealthModule,

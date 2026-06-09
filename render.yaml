@@ -1,3 +1,13 @@
+databases:
+  - name: ledgerlens-db
+    databaseName: ledgerlens
+    user: ledgerlens_user
+    plan: free
+
+  - type: redis
+    name: ledgerlens-redis
+    plan: free
+
 services:
   # The NestJS Backend API
   - type: web
@@ -7,16 +17,38 @@ services:
     startCommand: cd apps/api && pnpm run start:prod
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: ledgerlens-db
+          property: connectionString
+      - key: REDIS_URL
+        fromDatabase:
+          name: ledgerlens-redis
+          property: connectionString
       - key: JWT_SECRET
         sync: false
       - key: PORT
         value: 10000
-      - key: REDIS_URL
-        sync: false
-      - key: RABBITMQ_URL
-        sync: false
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+  # The Background OCR Worker
+  # Note: Render doesn't allow free workers. We are configuring this as a web service 
+  # that binds to a dummy port so it qualifies for the free tier.
+  - type: web
+    name: ledgerlens-ocr-worker
+    env: node
+    buildCommand: pnpm install && cd services/ocr && pnpm run build
+    startCommand: PORT=10000 cd services/ocr && pnpm run start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ledgerlens-db
+          property: connectionString
+      - key: REDIS_URL
+        fromDatabase:
+          name: ledgerlens-redis
+          property: connectionString
+      - key: GEMINI_API_KEY
         sync: false
