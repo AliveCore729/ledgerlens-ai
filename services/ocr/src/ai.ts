@@ -23,7 +23,7 @@ export async function parseTransactions(rawText: string) {
             date: { type: SchemaType.STRING, description: "Date of the transaction strictly formatted as YYYY-MM-DD" },
             time: { type: SchemaType.STRING, description: "Exact time of the transaction (e.g. '14:30', '02:30 PM') if visible on the statement line, otherwise null" },
             amount: { type: SchemaType.NUMBER },
-            type: { type: SchemaType.STRING, enum: ["CREDIT", "DEBIT"] },
+            type: { type: SchemaType.STRING, enum: ["CREDIT", "DEBIT"], format: "enum" as any },
             vendor: { type: SchemaType.STRING, description: "Short, clean vendor name without extra IDs (e.g. 'Uber', 'Amazon', 'Starbucks')" },
             category: { type: SchemaType.STRING },
             narration: { type: SchemaType.STRING, description: "The original full transaction text/narration from the statement" },

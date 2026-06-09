@@ -73,7 +73,7 @@ const worker = new Worker(
       throw error;
     }
   },
-  { connection }
+  { connection: connection as any }
 );
 
 worker.on('completed', (job) => {

@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+// @ts-ignore
 import pdfParse from 'pdf-parse';
 import Tesseract from 'tesseract.js';
 import { exec } from 'child_process';

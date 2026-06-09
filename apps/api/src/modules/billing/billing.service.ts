@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class BillingService {
-  private stripe: Stripe;
+  private stripe: any;
 
   constructor(private prisma: PrismaService) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
