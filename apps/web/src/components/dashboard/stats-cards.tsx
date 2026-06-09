@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 import { Activity, ArrowDownRight, ArrowUpRight, DollarSign, Store, FileText } from 'lucide-react';
 import { AnimatedCounter } from '@/components/ui/animated-counter';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
 interface StatsData {
   totalTransactions?: number;
@@ -42,7 +42,7 @@ export default function StatsCards({ data, isLoading }: StatsCardsProps) {
     netBalance = 0,
   } = data || {};
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -50,7 +50,7 @@ export default function StatsCards({ data, isLoading }: StatsCardsProps) {
     }
   };
 
-  const item = {
+  const item: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
   };

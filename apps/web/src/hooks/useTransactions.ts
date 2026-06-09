@@ -20,6 +20,7 @@ export interface TransactionFilters {
 export interface Transaction {
   id: string;
   date: string;
+  time: string | null;
   narration: string;
   vendor: string | null;
   amount: number;
