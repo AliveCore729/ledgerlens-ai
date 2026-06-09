@@ -1,3 +1,9 @@
+databases:
+  - name: ledgerlens-db
+    databaseName: ledgerlens
+    user: ledgerlens_user
+    plan: free
+
 services:
   # The NestJS Backend API
   - type: web
@@ -7,7 +13,9 @@ services:
     startCommand: cd apps/api && pnpm run start:prod
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: ledgerlens-db
+          property: connectionString
       - key: JWT_SECRET
         sync: false
       - key: PORT
@@ -29,7 +37,9 @@ services:
     startCommand: cd services/ocr && pnpm run start
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: ledgerlens-db
+          property: connectionString
       - key: RABBITMQ_URL
         sync: false
       - key: REDIS_URL
