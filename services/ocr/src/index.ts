@@ -4,8 +4,19 @@ import { prisma } from '@ledgerlens/database';
 import { extractText } from './extractor';
 import { parseTransactions } from './ai';
 
+import * as http from 'http';
+
 const connection = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379', {
   maxRetriesPerRequest: null,
+});
+
+// Dummy HTTP server for Render health checks
+const port = process.env.PORT || 10000;
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end('OCR Worker is healthy!');
+}).listen(port, () => {
+  console.log(`Dummy health server listening on port ${port}`);
 });
 
 console.log('Starting OCR Worker...');
