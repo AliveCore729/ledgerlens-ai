@@ -30,12 +30,14 @@ import { AuditModule } from './modules/audit/audit.module';
         const redisUrl = configService.get<string>('REDIS_URL');
         if (redisUrl) {
           const url = new URL(redisUrl);
+          const isTls = url.protocol === 'rediss:';
           return {
             connection: {
               host: url.hostname,
               port: parseInt(url.port, 10) || 6379,
-              username: url.username || undefined,
-              password: url.password || undefined,
+              username: url.username ? decodeURIComponent(url.username) : undefined,
+              password: url.password ? decodeURIComponent(url.password) : undefined,
+              ...(isTls ? { tls: {} } : {}),
             },
           };
         }
