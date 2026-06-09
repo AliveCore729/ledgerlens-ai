@@ -1,0 +1,62 @@
+# -----------------------------------
+# Stage 1: Build the Application
+# -----------------------------------
+FROM node:20-alpine AS builder
+
+# Install pnpm
+RUN npm install -g pnpm@9.0.0
+
+WORKDIR /app
+
+# Copy configuration files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/database/package.json ./packages/database/
+COPY services/ocr/package.json ./services/ocr/
+COPY apps/web/package.json ./apps/web/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the source code
+COPY . .
+
+# Generate Prisma Client (crucial for @ledgerlens/database)
+RUN pnpm --filter @ledgerlens/database run generate || echo "Skipping if no generate script"
+# Sometimes Prisma needs to be generated manually
+RUN cd packages/database && npx prisma generate
+
+# Build the API
+RUN pnpm run build --filter=api
+
+# -----------------------------------
+# Stage 2: Production Image
+# -----------------------------------
+FROM node:20-alpine AS runner
+
+RUN npm install -g pnpm@9.0.0
+
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV production
+
+# Copy necessary files from builder
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/apps/api/package.json ./apps/api/
+COPY --from=builder /app/packages/database/package.json ./packages/database/
+
+# Install ONLY production dependencies
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy the built code
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/packages/database ./packages/database
+
+WORKDIR /app/apps/api
+
+# Expose API port
+EXPOSE 10000
+
+# Start the NestJS application
+CMD ["node", "dist/main.js"]
