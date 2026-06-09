@@ -120,22 +120,25 @@ export function UploadZone() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ${
-              isDragActive 
-                ? "border-primary bg-primary/5 scale-[1.02]" 
-                : "border-border hover:border-primary/50 hover:bg-muted/50"
-            }`}
           >
-            <input {...getInputProps()} />
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-              <UploadCloud className="w-8 h-8 text-primary" />
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ${
+                isDragActive 
+                  ? "border-primary bg-primary/5 scale-[1.02]" 
+                  : "border-border hover:border-primary/50 hover:bg-muted/50"
+              }`}
+            >
+              <input {...getInputProps()} />
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <UploadCloud className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Drag & drop your statement</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                Securely upload your bank statements. We support PDF, CSV, and Excel formats up to 50MB.
+              </p>
+              <Button variant="secondary" className="px-8">Browse Files</Button>
             </div>
-            <h3 className="text-xl font-semibold mb-2">Drag & drop your statement</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
-              Securely upload your bank statements. We support PDF, CSV, and Excel formats up to 50MB.
-            </p>
-            <Button variant="secondary" className="px-8">Browse Files</Button>
           </motion.div>
         ) : (
           <motion.div
