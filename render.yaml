@@ -14,6 +14,7 @@ services:
   # The NestJS Backend API
   - type: web
     name: ledgerlens-api
+    plan: free
     env: node
     buildCommand: pnpm install && pnpm run build --filter=api
     startCommand: cd apps/api && pnpm run start:prod
@@ -41,6 +42,7 @@ services:
   # that binds to a dummy port so it qualifies for the free tier.
   - type: web
     name: ledgerlens-ocr-worker
+    plan: free
     env: node
     buildCommand: pnpm install && cd services/ocr && pnpm run build
     startCommand: PORT=10000 cd services/ocr && pnpm run start
