@@ -4,9 +4,7 @@ import { prisma } from '@ledgerlens/database';
 import { extractText } from './extractor';
 import { parseTransactions } from './ai';
 
-const connection = new IORedis({
-  host: 'localhost',
-  port: 6379,
+const connection = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379', {
   maxRetriesPerRequest: null,
 });
 
