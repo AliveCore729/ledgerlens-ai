@@ -1,0 +1,38 @@
+services:
+  # The NestJS Backend API
+  - type: web
+    name: ledgerlens-api
+    env: node
+    buildCommand: pnpm install && pnpm run build --filter=api
+    startCommand: cd apps/api && pnpm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 10000
+      - key: REDIS_URL
+        sync: false
+      - key: RABBITMQ_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+  # The Background OCR Worker
+  - type: worker
+    name: ledgerlens-ocr-worker
+    env: node
+    buildCommand: pnpm install && cd services/ocr && pnpm run build
+    startCommand: cd services/ocr && pnpm run start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: RABBITMQ_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

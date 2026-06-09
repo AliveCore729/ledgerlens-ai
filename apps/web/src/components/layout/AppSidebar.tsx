@@ -56,6 +56,11 @@ const data = {
     { title: "Audit Logs", url: "/dashboard/audit", icon: ShieldAlert },
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
   ],
+  navApps: [
+    { title: "Platform Metrics", url: "/dashboard/admin", icon: ShieldAlert },
+    { title: "Organizations", url: "/dashboard/admin/organizations", icon: Users },
+    { title: "Global Users", url: "/dashboard/admin/users", icon: Users },
+  ],
 }
 
 export function AppSidebar() {
@@ -63,8 +68,12 @@ export function AppSidebar() {
   const pathname = usePathname()
   
   const isStatementsPage = pathname?.startsWith('/dashboard/statements');
+  const isAppsPage = pathname?.startsWith('/dashboard/admin');
+  
   const activeIndicatorClass = isStatementsPage 
     ? "bg-[#1C1C1E] shadow-[inset_-24px_0px_32px_-12px_rgba(255,84,27,0.4)] border-[#FF541B]"
+    : isAppsPage
+    ? "bg-[#1C1C1E] shadow-[inset_-24px_0px_32px_-12px_rgba(52,211,153,0.3)] border-[#34d399]"
     : "bg-[#1C1C1E] shadow-[inset_-24px_0px_32px_-12px_rgba(48,84,255,0.4)] border-[#3054ff]";
 
   return (
@@ -160,30 +169,30 @@ export function AppSidebar() {
             <SidebarGroupLabel className="text-emerald-400/80 uppercase tracking-widest text-[10px] font-bold px-4 mb-2">Apps</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="gap-1">
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild className="hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-xl h-11 px-4">
-                    <Link href="/dashboard/admin">
-                      <ShieldAlert className="mr-3 h-5 w-5 text-emerald-400/50" />
-                      <span className="font-medium text-[15px]">Platform Metrics</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild className="hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-xl h-11 px-4">
-                    <Link href="/dashboard/admin/organizations">
-                      <Users className="mr-3 h-5 w-5 text-emerald-400/50" />
-                      <span className="font-medium text-[15px]">Organizations</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild className="hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-xl h-11 px-4">
-                    <Link href="/dashboard/admin/users">
-                      <Users className="mr-3 h-5 w-5 text-emerald-400/50" />
-                      <span className="font-medium text-[15px]">Global Users</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {data.navApps.map((item) => {
+                  const isActive = pathname === item.url;
+                  return (
+                    <SidebarMenuItem key={item.title} className="relative">
+                      {isActive && (
+                        <motion.div
+                          layoutId="sidebar-active-indicator"
+                          className={cn("absolute inset-0 rounded-xl border-r-2", activeIndicatorClass)}
+                          initial={false}
+                          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                        />
+                      )}
+                      <SidebarMenuButton asChild className={cn(
+                        "relative z-10 transition-all rounded-xl h-11 px-4 duration-300",
+                        isActive ? "text-emerald-400 hover:bg-transparent" : "text-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-400"
+                      )}>
+                        <Link href={item.url}>
+                          <item.icon className={cn("mr-3 h-5 w-5 transition-colors", isActive ? "text-emerald-400" : "text-emerald-400/50")} />
+                          <span className="font-medium text-[15px]">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
