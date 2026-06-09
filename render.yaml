@@ -4,11 +4,13 @@ databases:
     user: ledgerlens_user
     plan: free
 
+services:
+  # Managed Redis Cache / Queue
   - type: redis
     name: ledgerlens-redis
     plan: free
+    ipAllowList: [] # Keep internal
 
-services:
   # The NestJS Backend API
   - type: web
     name: ledgerlens-api
@@ -21,7 +23,8 @@ services:
           name: ledgerlens-db
           property: connectionString
       - key: REDIS_URL
-        fromDatabase:
+        fromService:
+          type: redis
           name: ledgerlens-redis
           property: connectionString
       - key: JWT_SECRET
@@ -47,7 +50,8 @@ services:
           name: ledgerlens-db
           property: connectionString
       - key: REDIS_URL
-        fromDatabase:
+        fromService:
+          type: redis
           name: ledgerlens-redis
           property: connectionString
       - key: GEMINI_API_KEY
