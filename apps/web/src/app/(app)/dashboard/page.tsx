@@ -50,30 +50,49 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#111c2e] to-[#0f172a] border border-white/5 p-8 flex justify-between items-center shadow-lg">
-        <div className="relative z-10 space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-[#3054ff]/20 flex items-center justify-center border border-[#3054ff]/30">
-              <span className="text-xl font-bold text-white">
-                {useAuthStore.getState().user?.name?.charAt(0) || "U"}
-              </span>
+      <div className="relative overflow-hidden rounded-2xl bg-[#0d1117] border border-white/5 p-8 flex justify-between items-center shadow-xl">
+        {/* Glow effects */}
+        <div className="absolute top-[-50%] left-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-[#3054ff]/20 to-[#00d2ff]/5 rounded-full blur-[100px] opacity-60 pointer-events-none" />
+        <div className="absolute bottom-[-50%] right-[-10%] w-[500px] h-[500px] bg-gradient-to-tl from-[#3054ff]/10 to-transparent rounded-full blur-[80px] opacity-40 pointer-events-none" />
+        
+        {/* Inner content */}
+        <div className="relative z-10 space-y-4 w-full md:w-2/3">
+          <div className="flex items-center gap-5">
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#3054ff] to-[#00d2ff] rounded-full blur-md opacity-50" />
+              <div className="relative h-16 w-16 rounded-full bg-[#1C1C1E] border border-white/10 flex items-center justify-center overflow-hidden">
+                <span className="text-2xl font-bold bg-gradient-to-br from-white to-white/50 bg-clip-text text-transparent">
+                  {useAuthStore.getState().user?.name?.charAt(0) || "U"}
+                </span>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                Welcome back! {useAuthStore.getState().user?.name?.split(' ')[0] || "User"} 👋
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-white/70 mb-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d2ff] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00d2ff]"></span>
+                </span>
+                Dashboard Overview
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+                Welcome back, {useAuthStore.getState().user?.name?.split(' ')[0] || "User"}
+                <span className="inline-block origin-[70%_70%] hover:rotate-12 transition-transform cursor-default">👋</span>
               </h1>
-              <p className="text-white/60">Check your reports</p>
+              <p className="text-white/50 text-sm font-medium leading-relaxed max-w-lg mt-1">
+                Here's what's happening with your finances today. Upload new statements or review your categorized cash flow.
+              </p>
             </div>
           </div>
         </div>
         
         {/* Decorative Image */}
-        <div className="absolute right-0 top-0 h-full w-1/3 max-w-[300px] hidden md:block opacity-80 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#0f172a]" />
+        <div className="absolute right-0 top-0 h-full w-1/3 max-w-[400px] hidden md:block opacity-90 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#0d1117]/50 to-[#0d1117] z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1117]/80 via-transparent to-transparent z-10" />
           <img 
             src="/welcome-illustration.png" 
             alt="Welcome Illustration" 
-            className="w-full h-full object-cover mix-blend-screen"
+            className="w-full h-full object-cover mix-blend-screen scale-110 origin-right"
           />
         </div>
       </div>
