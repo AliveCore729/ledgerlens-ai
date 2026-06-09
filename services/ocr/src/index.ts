@@ -24,7 +24,7 @@ console.log('Starting OCR Worker...');
 const worker = new Worker(
   'ocr-job',
   async (job) => {
-    const { statementId } = job.data;
+    const { statementId, fileData } = job.data;
     console.log(`Processing job ${job.id} for statement ${statementId}`);
 
     // Fetch statement
@@ -36,6 +36,11 @@ const worker = new Worker(
       throw new Error(`Statement ${statementId} not found`);
     }
 
+    let tempFilePath: string | null = null;
+    const fs = require('fs');
+    const path = require('path');
+    const crypto = require('crypto');
+
     try {
       // Update status to processing
       await prisma.statement.update({
@@ -43,8 +48,16 @@ const worker = new Worker(
         data: { status: 'PROCESSING' }
       });
 
+      // Write base64 to temp file since containers have isolated disks
+      if (!fileData) {
+        throw new Error("Missing fileData payload from API");
+      }
+      const ext = path.extname(statement.fileName || statement.fileUrl || '.pdf');
+      tempFilePath = path.join('/tmp', `ledgerlens-ocr-${crypto.randomBytes(4).toString('hex')}${ext}`);
+      fs.writeFileSync(tempFilePath, Buffer.from(fileData, 'base64'));
+
       // 1. Extract Text
-      const rawText = await extractText(statement.fileUrl, statement.mimeType);
+      const rawText = await extractText(tempFilePath, statement.mimeType);
       
       // 2. AI Parsing
       const parsedTransactions = await parseTransactions(rawText);
@@ -82,6 +95,14 @@ const worker = new Worker(
         data: { status: 'FAILED' }
       });
       throw error;
+    } finally {
+      if (tempFilePath && fs.existsSync(tempFilePath)) {
+        try {
+          fs.unlinkSync(tempFilePath);
+        } catch (e) {
+          console.error(`Failed to delete temp file ${tempFilePath}`, e);
+        }
+      }
     }
   },
   { connection: connection as any }

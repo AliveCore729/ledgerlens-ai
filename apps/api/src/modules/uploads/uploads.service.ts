@@ -50,8 +50,14 @@ export class UploadsService {
         },
       });
 
+      const fs = require('fs');
+      const fileData = fs.readFileSync(file.path).toString('base64');
+
       // Queue OCR Job
-      await this.ocrQueue.add('process-statement', { statementId: statement.id });
+      await this.ocrQueue.add('process-statement', { 
+        statementId: statement.id,
+        fileData
+      });
 
       // Create Audit Log
       await this.prisma.auditLog.create({
