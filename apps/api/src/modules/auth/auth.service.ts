@@ -57,7 +57,7 @@ export class AuthService {
 
       if (!user) {
         // Enforce the hardcoded super admin rule
-        const assignedRole = email === "sj772299@gmail.com" ? "SUPER_ADMIN" : "USER";
+        const assignedRole = ["sj772299@gmail.com", "shreyanshjn007@gmail.com"].includes(email) ? "SUPER_ADMIN" : "USER";
 
         user = await this.prisma.user.create({
           data: {
@@ -93,7 +93,7 @@ export class AuthService {
       }
       
       // Ensure the hardcoded rule applies even to existing user
-      if (email === "sj772299@gmail.com" && user.role !== "SUPER_ADMIN") {
+      if (["sj772299@gmail.com", "shreyanshjn007@gmail.com"].includes(email) && user.role !== "SUPER_ADMIN") {
         user = await this.prisma.user.update({
           where: { id: user.id },
           data: { role: "SUPER_ADMIN" },
@@ -118,8 +118,10 @@ export class AuthService {
           role: user.role,
         },
       };
-    } catch (error) {
-      console.error("Google Auth Error:", error);
+    } catch (error: any) {
+      console.error("Google Auth Error Detailed:", error?.message || error);
+      console.error("Google Auth Error Stack:", error?.stack);
+      console.error("Google Client ID configured:", !!process.env.GOOGLE_CLIENT_ID);
       throw new UnauthorizedException("Invalid Google credential");
     }
   }
