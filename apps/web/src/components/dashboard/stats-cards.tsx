@@ -22,8 +22,8 @@ interface StatsCardsProps {
 export default function StatsCards({ data, isLoading }: StatsCardsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="bg-[#1a1f2c] border-white/5 shadow-md flex flex-col items-center justify-center p-6 h-[160px]">
             <Skeleton className="h-10 w-10 rounded-full mb-4 bg-white/10" />
             <Skeleton className="h-4 w-20 mb-2 bg-white/10" />
@@ -60,7 +60,7 @@ export default function StatsCards({ data, isLoading }: StatsCardsProps) {
       variants={container} 
       initial="hidden" 
       animate="show" 
-      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+      className="grid grid-cols-2 lg:grid-cols-4 gap-4"
     >
       {/* 1. Net Cash Flow / Payroll */}
       <motion.div variants={item}>
@@ -114,31 +114,6 @@ export default function StatsCards({ data, isLoading }: StatsCardsProps) {
         </Card>
       </motion.div>
 
-      {/* 5. Placeholder 1: Vendors */}
-      <motion.div variants={item}>
-        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
-          <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-4">
-            <Store className="h-6 w-6 text-orange-400" />
-          </div>
-          <p className="text-sm font-medium text-orange-400 mb-1">Vendors</p>
-          <div className="text-xl font-bold tracking-tight text-white">
-            <AnimatedCounter value={42} format={(v) => Math.round(v).toLocaleString()} />
-          </div>
-        </Card>
-      </motion.div>
-
-      {/* 6. Placeholder 2: Reports */}
-      <motion.div variants={item}>
-        <Card className="shadow-md border-white/5 bg-[#171e2e] hover:bg-[#1c2438] transition-colors flex flex-col items-center justify-center p-6 h-[160px]">
-          <div className="h-12 w-12 rounded-full bg-cyan-500/20 flex items-center justify-center mb-4">
-            <FileText className="h-6 w-6 text-cyan-400" />
-          </div>
-          <p className="text-sm font-medium text-cyan-400 mb-1">Reports</p>
-          <div className="text-xl font-bold tracking-tight text-white">
-            <AnimatedCounter value={12} format={(v) => Math.round(v).toLocaleString()} />
-          </div>
-        </Card>
-      </motion.div>
     </motion.div>
   );
 }
