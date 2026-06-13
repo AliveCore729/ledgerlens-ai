@@ -53,10 +53,16 @@ export class UploadsService {
       const fs = require('fs');
       const fileData = fs.readFileSync(file.path).toString('base64');
 
-      // Queue OCR Job
+      // Queue OCR Job with Exponential Backoff for Rate Limits
       await this.ocrQueue.add('process-statement', { 
         statementId: statement.id,
         fileData
+      }, {
+        attempts: 10,
+        backoff: {
+          type: 'exponential',
+          delay: 60000 // Start with 1 minute delay, then 2m, 4m, 8m...
+        }
       });
 
       // Create Audit Log
