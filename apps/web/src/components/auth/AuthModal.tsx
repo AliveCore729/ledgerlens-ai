@@ -8,11 +8,14 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
 import { authService } from "@/services/auth-service";
 import { useAuthStore } from "@/store/auth-store";
+import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
 
 export default function AuthModal() {
   const router = useRouter();
   const { isAuthModalOpen, closeAuthModal, setToken, setUser, user } = useAuthStore();
   const [status, setStatus] = React.useState<"idle" | "processing" | "success" | "expanding" | "revealing">("idle");
+  const [agreedToTerms, setAgreedToTerms] = React.useState(false);
 
   // Reset status when modal opens
   React.useEffect(() => {
@@ -223,9 +226,9 @@ export default function AuthModal() {
                       }
                     : { type: "spring", stiffness: 250, damping: 25, mass: 0.5 }
                   }
-                  className="flex items-center justify-center whitespace-nowrap shadow-md text-black font-medium relative group hover:bg-white/90 disabled:opacity-80"
+                  className="flex items-center justify-center whitespace-nowrap shadow-md text-black font-medium relative group hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ zIndex: status === "expanding" || status === "revealing" ? 150 : 10 }}
-                  disabled={status !== "idle"}
+                  disabled={status !== "idle" || !agreedToTerms}
                 >
                   <AnimatePresence>
                     {status !== "expanding" && status !== "revealing" && (
@@ -289,14 +292,22 @@ export default function AuthModal() {
               {/* T&C - Fades out on processing/success */}
               <AnimatePresence>
                 {status === "idle" && (
-                  <motion.p
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute bottom-6 z-10 text-[11px] text-white/30 max-w-[200px] leading-relaxed"
+                    className="absolute bottom-6 z-10 flex items-start space-x-2 text-left max-w-[280px]"
                   >
-                    By continuing, you agree to our Terms of Service and Privacy Policy.
-                  </motion.p>
+                    <Checkbox 
+                      id="modal-terms" 
+                      checked={agreedToTerms}
+                      onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                      className="mt-0.5 border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-black"
+                    />
+                    <label htmlFor="modal-terms" className="text-[11px] text-white/50 leading-relaxed cursor-pointer hover:text-white/80 transition-colors">
+                      I agree to the <Link href="/terms" onClick={closeAuthModal} className="underline hover:text-white">Terms of Service</Link> and acknowledge the <Link href="/privacy" onClick={closeAuthModal} className="underline hover:text-white">Privacy Policy</Link> (including AI data processing).
+                    </label>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
