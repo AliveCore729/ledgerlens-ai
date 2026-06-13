@@ -8,9 +8,11 @@ import { authService } from "@/services/auth-service"
 import { useAuthStore } from "@/store/auth-store"
 import { toast } from "sonner"
 import { GoogleLogin } from "@react-oauth/google"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = React.useState(false)
+  const [agreedToTerms, setAgreedToTerms] = React.useState(false)
   const router = useRouter()
   const setToken = useAuthStore((state) => state.setToken)
   const setUser = useAuthStore((state) => state.setUser)
@@ -59,13 +61,28 @@ export default function RegisterPage() {
       </div>
       <Card className="border-0 shadow-none bg-transparent">
         <CardContent className="flex flex-col items-center justify-center p-0 pt-4">
-          <div className={isLoading ? "opacity-50 pointer-events-none" : ""}>
+          <div className="flex items-center space-x-2 w-full justify-center mb-6">
+            <Checkbox 
+              id="terms" 
+              checked={agreedToTerms} 
+              onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} 
+              className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+            />
+            <label
+              htmlFor="terms"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              I agree to the Terms of Service & Privacy Policy
+            </label>
+          </div>
+
+          <div className={(!agreedToTerms || isLoading) ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => {
                 toast.error("Google signup failed")
               }}
-              useOneTap
+              useOneTap={false} // Disable oneTap if they haven't agreed yet
               theme="filled_black"
               shape="pill"
               size="large"
