@@ -64,6 +64,7 @@ enum StatementStatus {
   PENDING
   UPLOADED
   PROCESSING
+  DELAYED
   COMPLETED
   FAILED
 }

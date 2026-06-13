@@ -29,7 +29,8 @@ const worker = new Worker(
 
     // Fetch statement
     const statement = await prisma.statement.findUnique({
-      where: { id: statementId }
+      where: { id: statementId },
+      include: { uploadedBy: true }
     });
 
     if (!statement) {
@@ -87,9 +88,25 @@ const worker = new Worker(
       });
 
       console.log(`Successfully processed statement ${statementId}`);
-    } catch (error) {
+
+      // Send Email Notification
+      const { sendCompletionEmail } = require('./email');
+      if (statement.uploadedBy?.email) {
+        await sendCompletionEmail(statement.uploadedBy.email, statement.fileName);
+      }
+    } catch (error: any) {
       console.error(`Failed to process statement ${statementId}:`, error);
-      // Update status to failed
+
+      if (error?.message === "RATE_LIMIT") {
+        // Mark as delayed in UI so user knows it's waiting for cooldown
+        await prisma.statement.update({
+          where: { id: statementId },
+          data: { status: 'DELAYED' }
+        });
+        throw error; // Let BullMQ catch it and schedule exponential backoff
+      }
+
+      // Update status to failed for any other error
       await prisma.statement.update({
         where: { id: statementId },
         data: { status: 'FAILED' }

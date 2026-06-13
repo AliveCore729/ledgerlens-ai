@@ -60,44 +60,14 @@ export function UploadZone() {
 
       const statementId = response.statement.id;
 
-      // 2. Poll Backend for Status
-      setStatus("processing");
-      
-      let isCompleted = false;
-      let hasFailed = false;
-
-      while (!isCompleted && !hasFailed) {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Poll every 2 seconds
-        
-        try {
-          const check = await uploadService.checkStatus(statementId);
-          
-          if (check.status === "PROCESSING") {
-            // Cycle through steps visually to show it's doing something
-            setCurrentStepIndex((prev) => Math.min(prev + 1, PROCESSING_STEPS.length - 2));
-          } else if (check.status === "COMPLETED") {
-            isCompleted = true;
-            setCurrentStepIndex(PROCESSING_STEPS.length - 1);
-          } else if (check.status === "FAILED") {
-            hasFailed = true;
-          }
-        } catch (e) {
-          console.error("Failed to check status", e);
-        }
-      }
-
-      if (hasFailed) {
-        throw new Error("Backend AI parsing failed.");
-      }
-
-      // 3. Success
+      // 2. We don't poll anymore. We are now totally asynchronous!
       setStatus("success");
-      toast.success("Statement processed successfully!");
+      toast.success("Statement queued for background processing!");
       
-      // Redirect after a short delay
+      // Redirect to statements dashboard after 3 seconds so they can see the notification
       setTimeout(() => {
         router.push("/dashboard/statements");
-      }, 2000);
+      }, 3000);
 
     } catch (error: any) {
       console.error(error);
@@ -215,8 +185,9 @@ export function UploadZone() {
                 <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle className="w-8 h-8 text-emerald-500" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Processing Complete</h3>
-                <p className="text-sm text-muted-foreground">Redirecting to statements...</p>
+                <h3 className="text-xl font-semibold mb-2">Thanks for uploading!</h3>
+                <p className="text-sm text-muted-foreground mb-4">Your statement is queued for AI processing. We'll automatically categorize your transactions in the background (usually takes 1-2 minutes). You can leave this page!</p>
+                <p className="text-xs text-muted-foreground">Redirecting to dashboard...</p>
               </div>
             )}
 

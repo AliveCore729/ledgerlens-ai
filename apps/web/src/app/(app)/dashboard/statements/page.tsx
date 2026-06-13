@@ -87,6 +87,7 @@ export default function StatementsPage() {
                 <div className="flex shrink-0">
                   {statement.status === 'COMPLETED' && <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-full px-3 py-1 text-xs shadow-none"><CheckCircle2 className="w-3 h-3 mr-1.5"/> Ready</Badge>}
                   {statement.status === 'FAILED' && <Badge className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-full px-3 py-1 text-xs shadow-none"><AlertCircle className="w-3 h-3 mr-1.5"/> Failed</Badge>}
+                  {statement.status === 'DELAYED' && <Badge className="bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/20 rounded-full px-3 py-1 text-xs shadow-none"><Loader2 className="w-3 h-3 mr-1.5 animate-spin"/> Queued (High Demand)</Badge>}
                   {(statement.status === 'PROCESSING' || statement.status === 'PENDING' || statement.status === 'UPLOADED' || !statement.status) && <Badge className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 rounded-full px-3 py-1 text-xs shadow-none"><Loader2 className="w-3 h-3 mr-1.5 animate-spin"/> Processing</Badge>}
                 </div>
               </div>
