@@ -58,7 +58,7 @@ export async function parseTransactions(rawText: string) {
 
   CRITICAL: 
   - For 'date', you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
-  - For 'amount', you MUST extract the actual transaction amount (the Credit or Debit column). DO NOT extract the Running Balance amount, which often appears at the far right of the statement row. If a line only contains a balance, ignore it.
+  - For 'amount', you MUST extract the actual transaction amount (the Credit or Debit column). CRITICAL: Statement rows typically have 3 columns at the end: [Debit, Credit, Balance]. The Balance is almost ALWAYS the very last number on the row. The transaction amount is the number BEFORE the balance. NEVER output the Balance number as the amount! If a line only contains a balance, ignore it completely.
   - For 'time', extract the exact time from the statement line (e.g. "14:30", "2:30 PM", "14:30:00"). If no time is explicitly visible on the line, leave it blank or null.
   - For 'vendor', provide ONLY a short, clean business name (e.g., "Amazon", "Uber", "Starbucks"). Strip out any transaction IDs, terminal numbers, or filler words like "POS", "UPI", "PAYMENT".
   - For 'narration', provide the exact full original text of the transaction line as it appears in the statement.
