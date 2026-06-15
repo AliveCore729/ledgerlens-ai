@@ -50,6 +50,7 @@ const data = {
     { title: "Dashboard", url: "/dashboard", icon: Home },
     { title: "Statements", url: "/dashboard/statements", icon: FileText },
     { title: "Categorization", url: "/dashboard/categorization", icon: BarChart3 },
+    { title: "Upload Statement", url: "/dashboard/upload", icon: UploadCloud },
   ],
   navAdmin: [
     { title: "Billing", url: "/dashboard/billing", icon: CreditCard },

@@ -7,7 +7,6 @@ import { useStatements, useDeleteStatement } from '@/hooks/useStatements';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import UploadPanel from '@/components/dashboard/upload-panel';
 
 export default function StatementsPage() {
   const { data: statements, isLoading } = useStatements();
@@ -20,7 +19,6 @@ export default function StatementsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-white">Statement Library</h1>
           <p className="text-white/60">Manage and analyze your uploaded bank statements.</p>
         </div>
-        <UploadPanel />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
