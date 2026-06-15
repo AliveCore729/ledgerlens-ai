@@ -34,21 +34,6 @@ export default function UploadPage() {
               
               <div className="pt-2 space-y-3">
                 <h4 className="text-sm font-semibold flex items-center gap-2">
-                  <Banknote className="w-4 h-4 text-blue-500" />
-                  Supported Banks
-                </h4>
-                <ul className="text-sm text-muted-foreground space-y-1.5 list-disc pl-5">
-                  <li>HDFC Bank</li>
-                  <li>State Bank of India</li>
-                  <li>ICICI Bank</li>
-                  <li>Axis Bank</li>
-                  <li>Kotak Mahindra</li>
-                  <li>+ Most global PDF formats</li>
-                </ul>
-              </div>
-
-              <div className="pt-2 space-y-3">
-                <h4 className="text-sm font-semibold flex items-center gap-2">
                   <FileCheck2 className="w-4 h-4 text-purple-500" />
                   Format Requirements
                 </h4>
