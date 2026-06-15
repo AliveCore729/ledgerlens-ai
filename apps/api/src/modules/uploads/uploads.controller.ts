@@ -5,6 +5,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Body,
 } from "@nestjs/common";
 
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -51,12 +52,15 @@ export class UploadsController {
           "image/png",
           "image/jpeg",
           "image/jpg",
+          "text/csv",
+          "application/vnd.ms-excel",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ];
 
         if (!allowedMimeTypes.includes(file.mimetype)) {
           return callback(
             new BadRequestException(
-              "Only PDF and image files are allowed",
+              "Only PDF, CSV, Excel, and image files are allowed",
             ),
             false,
           );
@@ -69,7 +73,8 @@ export class UploadsController {
   uploadStatement(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: any,
+    @Body("filePassword") filePassword?: string,
   ) {
-    return this.uploadsService.handleUpload(file, user);
+    return this.uploadsService.handleUpload(file, user, filePassword);
   }
 }

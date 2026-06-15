@@ -22,7 +22,7 @@ export default function TermsOfService() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">3. Data Accuracy Disclaimer</h2>
           <p>
-            LedgerLens AI relies on artificial intelligence to extract data. While we strive for accuracy, we do not warrant that the extracted financial data is 100% accurate, complete, or current. You are solely responsible for verifying the accuracy of all extracted transactions before using them for accounting, tax, or legal purposes.
+            LedgerLens AI relies on artificial intelligence to extract data from PDFs. While we strive for accuracy, we do not warrant that the extracted financial data is 100% accurate, complete, or current. <strong>For 100% guaranteed accuracy, users should utilize the direct CSV or Excel upload functionality.</strong> You are solely responsible for verifying the accuracy of all extracted transactions before using them for accounting, tax, or legal purposes.
           </p>
         </section>
 

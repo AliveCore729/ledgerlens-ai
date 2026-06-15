@@ -24,7 +24,7 @@ console.log('Starting OCR Worker...');
 const worker = new Worker(
   'ocr-job',
   async (job) => {
-    const { statementId, fileData } = job.data;
+    const { statementId, fileData, filePassword } = job.data;
     console.log(`Processing job ${job.id} for statement ${statementId}`);
 
     // Fetch statement
@@ -58,7 +58,7 @@ const worker = new Worker(
       fs.writeFileSync(tempFilePath, Buffer.from(fileData, 'base64'));
 
       // 1. Extract Text
-      const rawText = await extractText(tempFilePath, statement.mimeType);
+      const rawText = await extractText(tempFilePath, statement.mimeType, filePassword);
       
       // 2. AI Parsing
       const parsedTransactions = await parseTransactions(rawText);

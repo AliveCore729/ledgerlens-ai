@@ -6,10 +6,11 @@ import Tesseract from 'tesseract.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as crypto from 'crypto';
+import * as xlsx from 'xlsx';
 
 const execAsync = promisify(exec);
 
-export async function extractText(filePath: string, mimeType: string): Promise<string> {
+export async function extractText(filePath: string, mimeType: string, password?: string): Promise<string> {
   let resolvedPath = filePath;
   if (!path.isAbsolute(filePath)) {
     // Resolve relative path against apps/api where the files are actually uploaded
@@ -19,10 +20,18 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
   const ext = path.extname(resolvedPath).toLowerCase();
   
   if (mimeType === 'application/pdf' || ext === '.pdf') {
-    const dataBuffer = fs.readFileSync(resolvedPath);
-    const data = await pdfParse(dataBuffer);
+    let dataBuffer = fs.readFileSync(resolvedPath);
+    let data: any = { text: '' };
     
-    if (data.text && data.text.trim().length > 100) {
+    try {
+      // If a password is provided, pdf-parse will likely fail or return empty, 
+      // but we try it anyway in case it wasn't actually locked.
+      data = await pdfParse(dataBuffer);
+    } catch (e) {
+      console.log('[OCR] pdf-parse failed (likely password protected). Falling back to pdftoppm...');
+    }
+    
+    if (data.text && data.text.trim().length > 100 && !password) {
       return data.text;
     }
     
@@ -33,7 +42,8 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
     
     try {
       // Convert PDF to JPEG images (one per page)
-      await execAsync(`pdftoppm -jpeg -r 300 "${resolvedPath}" "${tmpDir}/page"`);
+      const passFlag = password ? `-upw "${password.replace(/"/g, '\\"')}"` : '';
+      await execAsync(`pdftoppm -jpeg -r 300 ${passFlag} "${resolvedPath}" "${tmpDir}/page"`);
       
       const files = fs.readdirSync(tmpDir).filter(f => f.startsWith('page') && f.endsWith('.jpg')).sort();
       let fullText = '';
@@ -51,6 +61,20 @@ export async function extractText(filePath: string, mimeType: string): Promise<s
   } else if (mimeType.startsWith('image/')) {
     const { data: { text } } = await Tesseract.recognize(resolvedPath, 'eng');
     return text;
+  } else if (mimeType === 'text/csv' || ext === '.csv') {
+    console.log('[OCR] Detected CSV. Reading directly as text...');
+    const text = fs.readFileSync(resolvedPath, 'utf-8');
+    return text;
+  } else if (mimeType.includes('excel') || mimeType.includes('spreadsheet') || ext === '.xls' || ext === '.xlsx') {
+    console.log('[OCR] Detected Excel file. Converting to CSV string...');
+    const workbook = xlsx.readFile(resolvedPath, { password: password });
+    let fullText = '';
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      const csv = xlsx.utils.sheet_to_csv(sheet);
+      fullText += `--- Sheet: ${sheetName} ---\n${csv}\n\n`;
+    }
+    return fullText;
   }
   
   throw new Error(`Unsupported file type for OCR: ${mimeType}`);

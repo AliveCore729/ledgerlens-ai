@@ -3,11 +3,15 @@ import { api } from "@/lib/api";
 export const uploadService = {
   async uploadStatement(
     file: File, 
+    password?: string,
     onUploadProgress?: (progressEvent: any) => void
   ) {
     const formData = new FormData();
 
     formData.append("file", file);
+    if (password) {
+      formData.append("filePassword", password);
+    }
 
     const response = await api.post("/uploads/statement", formData, {
       headers: { "Content-Type": "multipart/form-data" },

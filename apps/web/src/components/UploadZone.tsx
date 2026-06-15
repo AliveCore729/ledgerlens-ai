@@ -20,6 +20,7 @@ const PROCESSING_STEPS = [
 
 export function UploadZone() {
   const [file, setFile] = useState<File | null>(null);
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "uploading" | "processing" | "success">("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -31,6 +32,7 @@ export function UploadZone() {
       setStatus("idle");
       setUploadProgress(0);
       setCurrentStepIndex(0);
+      setPassword("");
     }
   }, []);
 
@@ -51,7 +53,7 @@ export function UploadZone() {
     
     try {
       // 1. Actual Upload
-      const response = await uploadService.uploadStatement(file, (progressEvent) => {
+      const response = await uploadService.uploadStatement(file, password, (progressEvent) => {
         const percentCompleted = Math.round(
           (progressEvent.loaded * 100) / (progressEvent.total || file.size)
         );
@@ -78,6 +80,7 @@ export function UploadZone() {
 
   const removeFile = () => {
     setFile(null);
+    setPassword("");
     setStatus("idle");
   };
 
@@ -108,6 +111,10 @@ export function UploadZone() {
                 Securely upload your bank statements. We support PDF, CSV, and Excel formats up to 50MB.
               </p>
               <Button variant="secondary" className="px-8">Browse Files</Button>
+              <div className="mt-6 text-xs text-muted-foreground bg-primary/5 border border-primary/10 rounded-lg p-3 max-w-sm mx-auto text-left">
+                <span className="font-semibold text-primary block mb-1">💡 Pro Tip for 100% Accuracy:</span>
+                While our AI is highly accurate with PDFs, uploading your statement directly as a <strong>.csv</strong> or <strong>.xlsx</strong> file from your bank guarantees flawless number extraction!
+              </div>
             </div>
           </motion.div>
         ) : (
@@ -192,13 +199,31 @@ export function UploadZone() {
             )}
 
             {status === "idle" && (
-              <Button 
-                className="w-full h-11" 
-                onClick={handleUploadAndProcess}
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Upload & Extract with AI
-              </Button>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium text-muted-foreground">
+                    File Password (Optional)
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="e.g. Account Number (If PDF is locked)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Your password is only used once to decrypt the file and is never saved.
+                  </p>
+                </div>
+                <Button 
+                  className="w-full h-11" 
+                  onClick={handleUploadAndProcess}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Upload & Extract Data
+                </Button>
+              </div>
             )}
           </motion.div>
         )}
