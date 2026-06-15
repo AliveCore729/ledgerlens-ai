@@ -1,6 +1,6 @@
 import { UploadZone } from "@/components/UploadZone";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, Banknote, FileCheck2 } from "lucide-react";
+import { ShieldCheck, Banknote, FileCheck2, AlertCircle } from "lucide-react";
 
 export default function UploadPage() {
   return (
@@ -54,11 +54,31 @@ export default function UploadPage() {
                 </h4>
                 <ul className="text-sm text-muted-foreground space-y-1.5 list-disc pl-5">
                   <li>Clear, unscanned PDFs</li>
-                  <li>Standard CSV exports</li>
+                  <li>Standard CSV / Excel exports</li>
                   <li>Max file size: 50MB</li>
-                  <li>Password protection removed</li>
+                  <li>Provide password if PDF is locked</li>
                 </ul>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card shadow-sm border-orange-500/20">
+            <CardHeader className="pb-3 border-b border-orange-500/10 bg-orange-500/5">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-orange-400">
+                <AlertCircle className="w-5 h-5" />
+                Data Accuracy Disclaimer
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                LedgerLens relies on artificial intelligence to extract data from PDFs. While we strive for accuracy, the extracted financial data is not guaranteed to be 100% accurate.
+              </p>
+              <p className="text-sm text-white/80 font-medium">
+                For 100% guaranteed precision, please use the direct CSV or Excel upload options.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                You are responsible for verifying all transactions before using them for accounting or tax purposes.
+              </p>
             </CardContent>
           </Card>
         </div>

@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import StatsCards from '@/components/dashboard/stats-cards';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
-import UploadPanel from '@/components/dashboard/upload-panel';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useStatements } from '@/hooks/useStatements';
@@ -98,7 +98,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex justify-end w-full">
-        <UploadPanel />
+        {/* Upload panel moved to dedicated Upload Statement page */}
       </div>
 
       {isProcessing && (
