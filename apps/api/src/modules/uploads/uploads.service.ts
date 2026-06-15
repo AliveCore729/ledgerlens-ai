@@ -65,6 +65,17 @@ export class UploadsService {
         }
       });
 
+      // WAKE UP PING: Force Render to wake up the OCR worker if it went to sleep
+      if (process.env.OCR_WORKER_URL) {
+        try {
+          // Fire and forget! We don't await this because Render might take 50 seconds to boot the worker,
+          // and we don't want to make the user wait 50 seconds just to see the "Success" message on the frontend.
+          fetch(process.env.OCR_WORKER_URL).catch((e) => console.log("Wake up ping failed/timed out, but worker should be booting!"));
+        } catch (e) {
+          console.error("Failed to ping OCR worker", e);
+        }
+      }
+
       // Create Audit Log
       await this.prisma.auditLog.create({
         data: {
