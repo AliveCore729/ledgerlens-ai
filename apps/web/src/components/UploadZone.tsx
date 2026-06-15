@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { uploadService } from "@/services/upload-service";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PROCESSING_STEPS = [
   { id: "upload", label: "Uploading securely...", icon: UploadCloud },
@@ -25,6 +26,7 @@ export function UploadZone() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -65,6 +67,9 @@ export function UploadZone() {
       // 2. We don't poll anymore. We are now totally asynchronous!
       setStatus("success");
       toast.success("Statement queued for background processing!");
+      
+      // Invalidate the statements query so the dashboard shows the new file instantly
+      queryClient.invalidateQueries({ queryKey: ['statements'] });
       
       // Redirect to statements dashboard after 3 seconds so they can see the notification
       setTimeout(() => {
