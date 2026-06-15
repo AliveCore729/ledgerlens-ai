@@ -10,7 +10,7 @@ export class UploadsService {
     private prisma: PrismaService,
   ) {}
 
-  async handleUpload(file: Express.Multer.File, user: any) {
+  async handleUpload(file: Express.Multer.File, user: any, filePassword?: string) {
     try {
       // Find the first organization the user belongs to (or mock if not found)
       let org: any = await this.prisma.organizationUser.findFirst({
@@ -56,7 +56,8 @@ export class UploadsService {
       // Queue OCR Job with Exponential Backoff for Rate Limits
       await this.ocrQueue.add('process-statement', { 
         statementId: statement.id,
-        fileData
+        fileData,
+        filePassword,
       }, {
         attempts: 10,
         backoff: {
