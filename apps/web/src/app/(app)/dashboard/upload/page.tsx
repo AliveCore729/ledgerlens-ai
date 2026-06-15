@@ -51,18 +51,12 @@ export default function UploadPage() {
             <CardHeader className="pb-3 border-b border-orange-500/10 bg-orange-500/5">
               <CardTitle className="text-lg font-semibold flex items-center gap-2 text-orange-400">
                 <AlertCircle className="w-5 h-5" />
-                Data Accuracy Disclaimer
+                Data Accuracy
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                LedgerLens relies on artificial intelligence to extract data from PDFs. While we strive for accuracy, the extracted financial data is not guaranteed to be 100% accurate.
-              </p>
               <p className="text-sm text-white/80 font-medium">
                 For 100% guaranteed precision, please use the direct CSV or Excel upload options.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                You are responsible for verifying all transactions before using them for accounting or tax purposes.
               </p>
             </CardContent>
           </Card>
