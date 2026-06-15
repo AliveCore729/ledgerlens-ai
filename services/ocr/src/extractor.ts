@@ -71,8 +71,10 @@ export async function extractText(filePath: string, mimeType: string, password?:
     let fullText = '';
     for (const sheetName of workbook.SheetNames) {
       const sheet = workbook.Sheets[sheetName];
-      const csv = xlsx.utils.sheet_to_csv(sheet);
-      fullText += `--- Sheet: ${sheetName} ---\n${csv}\n\n`;
+      if (sheet) {
+        const csv = xlsx.utils.sheet_to_csv(sheet);
+        fullText += `--- Sheet: ${sheetName} ---\n${csv}\n\n`;
+      }
     }
     return fullText;
   }
