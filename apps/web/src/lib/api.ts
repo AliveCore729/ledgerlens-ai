@@ -2,8 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '@/store/auth-store';
 
 export const api = axios.create({
-  // Hardcoded to ensure we bypass any stale Vercel environment variables
-  baseURL: 'https://20.6.132.118.nip.io/api/v1',
+  // Ensure this is set in your Vercel Environment Variables!
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
