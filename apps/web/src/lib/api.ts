@@ -2,8 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '@/store/auth-store';
 
 export const api = axios.create({
-  // Adjust this URL if your NestJS backend runs on a different port
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://20.6.132.118.nip.io/api/v1',
+  // Hardcoded to ensure we bypass any stale Vercel environment variables
+  baseURL: 'https://20.6.132.118.nip.io/api/v1',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
