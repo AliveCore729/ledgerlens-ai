@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   try {
-    const path = params.path.join('/');
+    const { path: pathParams } = await params;
+    const path = pathParams.join('/');
     const searchParams = req.nextUrl.searchParams.toString();
     const url = `https://generativelanguage.googleapis.com/${path}${searchParams ? `?${searchParams}` : ''}`;
 
