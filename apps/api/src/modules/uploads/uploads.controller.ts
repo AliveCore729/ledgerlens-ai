@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   Body,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 
 import { FileInterceptor } from "@nestjs/platform-express";
 
@@ -70,6 +71,7 @@ export class UploadsController {
       },
     }),
   )
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   uploadStatement(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: any,
