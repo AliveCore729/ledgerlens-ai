@@ -8,7 +8,7 @@ RUN npm install -g pnpm@9.0.0
 WORKDIR /app
 
 # Install necessary OS packages for OCR (tesseract)
-RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd
+RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd openssl
 
 # Copy configuration files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -27,7 +27,7 @@ COPY . .
 RUN cd packages/database && npx prisma generate
 
 # Build the OCR Worker
-RUN cd services/ocr && pnpm run build
+RUN pnpm run build --filter=ocr
 
 # -----------------------------------
 # Stage 2: Production Image
@@ -37,7 +37,7 @@ FROM node:20-alpine AS runner
 RUN npm install -g pnpm@9.0.0
 
 # Install necessary OS packages for OCR in production
-RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd
+RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd openssl
 
 WORKDIR /app
 
@@ -55,6 +55,9 @@ RUN pnpm install --prod --frozen-lockfile
 # Copy the built code
 COPY --from=builder /app/services/ocr/dist ./services/ocr/dist
 COPY --from=builder /app/packages/database ./packages/database
+
+# Generate Prisma Client for production
+RUN cd packages/database && npx prisma generate
 
 WORKDIR /app/services/ocr
 

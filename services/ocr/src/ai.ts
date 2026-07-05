@@ -11,8 +11,8 @@ export async function parseTransactions(rawText: string) {
   }
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ 
-    model: 'gemini-flash-latest',
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -32,6 +32,8 @@ export async function parseTransactions(rawText: string) {
         },
       },
     },
+  }, {
+    baseUrl: 'https://ledgerlens-ai-web.vercel.app/api/gemini'
   });
 
   // Chunk the raw text by lines to avoid slicing transactions in half

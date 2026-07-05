@@ -12,4 +12,5 @@ export const prisma =
     log: ['query', 'error', 'warn'],
   });
 
+// @ts-ignore
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
