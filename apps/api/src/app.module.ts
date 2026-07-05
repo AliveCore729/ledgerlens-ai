@@ -1,6 +1,8 @@
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { envValidationSchema } from './common/config/env.validation';
 import { HealthModule } from "./modules/health/health.module";
@@ -24,6 +26,10 @@ import { AuditModule } from './modules/audit/audit.module';
       envFilePath: "../../.env",
       validationSchema: envValidationSchema,
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -64,6 +70,12 @@ import { AuditModule } from './modules/audit/audit.module';
     AdminModule,
     TeamModule,
     AuditModule
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule { }
