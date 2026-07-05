@@ -33,7 +33,7 @@ export async function parseTransactions(rawText: string) {
       },
     },
   }, {
-    baseUrl: 'https://ledgerlens-ai-web.vercel.app/api/gemini'
+    baseUrl: process.env.GEMINI_PROXY_URL
   });
 
   // Chunk the raw text by lines to avoid slicing transactions in half
