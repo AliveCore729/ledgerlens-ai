@@ -67,7 +67,6 @@ describe('Subscription Grace Mode (e2e)', () => {
       return request(app.getHttpServer())
         .get('/team')
         .set('Authorization', `Bearer ${authToken}`)
-        .set('organization-id', testOrg.id)
         .expect(200)
         .expect((res) => {
           expect(Array.isArray(res.body)).toBeTruthy();
@@ -78,7 +77,6 @@ describe('Subscription Grace Mode (e2e)', () => {
       return request(app.getHttpServer())
         .post('/team/invite')
         .set('Authorization', `Bearer ${authToken}`)
-        .set('organization-id', testOrg.id)
         .send({ email: 'invite@test.com', role: 'MEMBER' })
         .expect(403)
         .expect((res) => {
@@ -99,7 +97,6 @@ describe('Subscription Grace Mode (e2e)', () => {
       return request(app.getHttpServer())
         .get('/team')
         .set('Authorization', `Bearer ${authToken}`)
-        .set('organization-id', testOrg.id)
         .expect(200);
     });
 
@@ -107,7 +104,6 @@ describe('Subscription Grace Mode (e2e)', () => {
       return request(app.getHttpServer())
         .post('/team/invite')
         .set('Authorization', `Bearer ${authToken}`)
-        .set('organization-id', testOrg.id)
         .send({ email: 'invite@test.com', role: 'MEMBER' })
         .expect((res) => {
           // It might be 201 created or 400 bad request depending on email setup, 
@@ -129,7 +125,6 @@ describe('Subscription Grace Mode (e2e)', () => {
       return request(app.getHttpServer())
         .get('/team')
         .set('Authorization', `Bearer ${authToken}`)
-        .set('organization-id', testOrg.id)
         .expect(200);
     });
 
@@ -137,7 +132,6 @@ describe('Subscription Grace Mode (e2e)', () => {
       return request(app.getHttpServer())
         .post('/team/invite')
         .set('Authorization', `Bearer ${authToken}`)
-        .set('organization-id', testOrg.id)
         .send({ email: 'invite2@test.com', role: 'MEMBER' })
         .expect(403)
         .expect((res) => {

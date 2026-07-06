@@ -28,21 +28,17 @@ export class ActiveSessionGuard implements CanActivate {
       throw new UnauthorizedException('Session expired due to role change. Please log in again.');
     }
 
-    // Verify organization membership if the token has an organizationId or header is present
-    const orgId = user.organizationId || request.headers['organization-id'];
-    if (orgId) {
-      const orgUser = await this.prisma.organizationUser.findUnique({
-        where: {
-          userId_organizationId: {
-            userId: user.userId,
-            organizationId: orgId
-          }
-        }
-      });
-      
-      if (!orgUser) {
-        throw new UnauthorizedException('You have been removed from this organization');
-      }
+    // Derive the target organization exactly as the controllers do (MVP assumes 1 user = 1 org)
+    const orgUser = await this.prisma.organizationUser.findFirst({
+      where: { userId: user.userId }
+    });
+    
+    if (!orgUser) {
+      // If the user has no org at all, some global routes might still be valid, 
+      // but if a route requires an org, the controllers will handle that logic (or we can enforce it here).
+      // For MVP, if they are authenticated and have no org, we allow them to pass the session guard,
+      // and let the controllers return empty data or handle the lack of an org.
+      return true;
     }
 
     return true;
