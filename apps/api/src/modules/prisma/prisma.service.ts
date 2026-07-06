@@ -20,11 +20,15 @@ export class PrismaService
    * Deterministically resolves the primary organization for a given user.
    * Centralizes the `orderBy: { createdAt: 'asc' }` rule for MVP multi-tenant isolation.
    */
-  async getUserPrimaryOrg(userId: string, args?: Omit<Prisma.OrganizationUserFindFirstArgs, 'where'> & { where?: Omit<Prisma.OrganizationUserWhereInput, 'userId'> }) {
-    return this.organizationUser.findFirst({
+  async getUserPrimaryOrg<T extends Prisma.OrganizationUserFindFirstArgs>(
+    userId: string, 
+    args?: T
+  ): Promise<Prisma.OrganizationUserGetPayload<T> | null> {
+    const payload = {
       ...args,
       where: { ...args?.where, userId },
       orderBy: { createdAt: 'asc' }
-    });
+    };
+    return this.organizationUser.findFirst(payload as any) as any;
   }
 }
