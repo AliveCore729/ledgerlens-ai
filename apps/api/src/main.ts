@@ -2,11 +2,13 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import helmet from "helmet";
 import compression from "compression";
+import { Logger } from 'nestjs-pino';
 
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
 
   app.enableCors({
     origin: [
@@ -34,8 +36,7 @@ async function bootstrap() {
   const port = process.env.PORT || 4000;
 
   await app.listen(port);
-
-  console.log(`🚀 API running on port ${port}`);
+  app.get(Logger).log(`🚀 API running on port ${port}`);
 }
 
 bootstrap();
