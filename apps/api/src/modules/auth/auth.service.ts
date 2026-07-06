@@ -71,13 +71,7 @@ export class AuthService {
                 role: "ADMIN",
                 organization: {
                   create: {
-                    name: `${firstName}'s Workspace`,
-                    subscription: {
-                      create: {
-                        plan: "FREE",
-                        status: "ACTIVE"
-                      }
-                    }
+                    name: `${firstName}'s Workspace`
                   }
                 }
               }

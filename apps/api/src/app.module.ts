@@ -2,8 +2,9 @@ import { PrismaModule } from "./modules/prisma/prisma.module";
 import { BullModule } from '@nestjs/bullmq';
 import { LoggerModule } from 'nestjs-pino';
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { AuditActionInterceptor } from './common/interceptors/audit-action.interceptor';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { envValidationSchema } from './common/config/env.validation';
 import { HealthModule } from "./modules/health/health.module";
@@ -98,6 +99,10 @@ import { AuditModule } from './modules/audit/audit.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditActionInterceptor,
+    }
   ],
 })
 export class AppModule { }

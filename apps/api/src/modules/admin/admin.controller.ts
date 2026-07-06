@@ -5,6 +5,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ActiveSessionGuard } from '../auth/active-session.guard';
+import { AuditAction } from '../../common/decorators/audit-action.decorator';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard, ActiveSessionGuard)
@@ -27,6 +28,7 @@ export class AdminController {
     return this.adminService.getUsers();
   }
 
+  @AuditAction('SUPER_ADMIN_ROLE_CHANGE')
   @Patch('users/:id/role')
   updateUserRole(
     @Param('id') id: string, 
@@ -34,5 +36,15 @@ export class AdminController {
     @CurrentUser() user: any
   ) {
     return this.adminService.updateUserRole(id, body.role, user.userId);
+  }
+
+  @AuditAction('ORG_SUBSCRIPTION_ACTIVATED')
+  @Patch('organizations/:id/activate-subscription')
+  activateSubscription(
+    @Param('id') orgId: string,
+    @Body() body: { paymentReference: string, expiresAt: string },
+    @CurrentUser() user: any
+  ) {
+    return this.adminService.activateSubscription(orgId, body.paymentReference, body.expiresAt, user.userId);
   }
 }
