@@ -1,5 +1,6 @@
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { BullModule } from '@nestjs/bullmq';
+import { LoggerModule } from 'nestjs-pino';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -25,6 +26,27 @@ import { AuditModule } from './modules/audit/audit.module';
       isGlobal: true,
       envFilePath: "../../.env",
       validationSchema: envValidationSchema,
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: process.env.NODE_ENV !== 'production' ? { target: 'pino-pretty' } : undefined,
+        autoLogging: true,
+        redact: ['req.headers.authorization', 'req.headers.cookie'],
+        customProps: (req, res) => {
+          const user = (req as any).user;
+          return {
+            userId: user?.userId,
+            orgId: user?.organizationId
+          };
+        },
+        serializers: {
+          req: (req) => ({
+            id: req.id,
+            method: req.method,
+            url: req.url,
+          }),
+        },
+      },
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,

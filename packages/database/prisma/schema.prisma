@@ -20,6 +20,10 @@ model User {
   organizationUsers OrganizationUser[]
   statements       Statement[]
   auditLogs        AuditLog[]
+
+  mfaEnabled       Boolean            @default(false)
+  mfaSecret        String?
+  mfaBackupCodesHash String[]         @default([])
 }
 
 model Organization {
@@ -152,8 +156,8 @@ enum SubStatus {
 
 model AuditLog {
   id             String       @id @default(uuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   action         String       // e.g., "STATEMENT_UPLOADED", "SETTINGS_UPDATED"
