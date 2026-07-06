@@ -44,15 +44,42 @@ export class AdminService {
     });
   }
 
-  async updateUserRole(id: string, role: string) {
+  async updateUserRole(id: string, role: string, adminUserId: string) {
     // Only allow specific roles
     if (!['USER', 'SUPER_ADMIN'].includes(role)) {
       throw new Error("Invalid role");
     }
 
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { role: role as any }
     });
+
+
+
+    return updatedUser;
+  }
+
+  async activateSubscription(orgId: string, paymentReference: string, expiresAt: string, adminUserId: string) {
+    if (!paymentReference || !expiresAt) {
+      throw new Error('paymentReference and expiresAt are required');
+    }
+
+    const expiryDate = new Date(expiresAt);
+    if (isNaN(expiryDate.getTime())) {
+      throw new Error('Invalid expiresAt date format');
+    }
+
+    const updatedOrg = await this.prisma.organization.update({
+      where: { id: orgId },
+      data: {
+        subscriptionStatus: 'ACTIVE',
+        subscriptionExpiresAt: expiryDate,
+        paymentReference,
+        activatedBy: adminUserId
+      }
+    });
+
+    return updatedOrg;
   }
 }

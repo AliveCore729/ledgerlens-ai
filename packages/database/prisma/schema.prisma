@@ -35,8 +35,19 @@ model Organization {
   organizationUsers OrganizationUser[]
   statements       Statement[]
   vendors          Vendor[]
-  subscription     Subscription?
   auditLogs        AuditLog[]
+  
+  subscriptionStatus    SubscriptionStatus @default(PENDING)
+  subscriptionExpiresAt DateTime?
+  activatedBy           String?            // Admin user id
+  paymentReference      String?
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  SUSPENDED
 }
 
 model OrganizationUser {
@@ -125,34 +136,7 @@ model Vendor {
   @@unique([organizationId, name])
 }
 
-model Subscription {
-  id                  String       @id @default(uuid())
-  organizationId      String       @unique
-  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
-  stripeCustomerId    String?      @unique
-  stripeSubscriptionId String?     @unique
-  
-  plan                Plan         @default(FREE)
-  status              SubStatus    @default(ACTIVE)
-  statementsProcessed Int          @default(0)
-  currentPeriodStart  DateTime     @default(now())
-  currentPeriodEnd    DateTime     @default(now())
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-}
 
-enum Plan {
-  FREE
-  PRO
-  ENTERPRISE
-}
-
-enum SubStatus {
-  ACTIVE
-  PAST_DUE
-  SUSPENDED
-}
 
 model AuditLog {
   id             String       @id @default(uuid())
