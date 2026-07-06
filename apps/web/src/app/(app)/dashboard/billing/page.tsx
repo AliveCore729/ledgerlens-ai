@@ -35,22 +35,12 @@ export default function BillingPage() {
     fetchSub();
   }, []);
 
-  const handleUpgrade = async () => {
-    try {
-      const { data } = await api.post('/billing/create-checkout', { priceId: 'price_pro_plan_123' });
-      window.location.href = data.url;
-    } catch (error) {
-      toast.error("Failed to redirect to checkout.");
-    }
+  const handleUpgrade = () => {
+    window.location.href = "mailto:support@ledgerlens.ai?subject=Upgrade%20to%20Pro%20Plan";
   };
 
-  const handleManageSubscription = async () => {
-    try {
-      const { data } = await api.post('/billing/create-portal');
-      window.location.href = data.url;
-    } catch (error) {
-      toast.error("Failed to redirect to billing portal.");
-    }
+  const handleManageSubscription = () => {
+    window.location.href = "mailto:support@ledgerlens.ai?subject=Manage%20Subscription";
   };
 
   const planName = sub?.plan === "PRO" ? "Pro Plan" : "Basic Plan";
@@ -105,28 +95,6 @@ export default function BillingPage() {
           </CardFooter>
         </Card>
 
-        {/* Payment Method */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Payment Method</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4 p-4 border rounded-lg bg-card">
-              <div className="h-10 w-14 bg-muted rounded flex items-center justify-center">
-                <CreditCard className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="font-medium text-sm">Visa ending in 4242</p>
-                <p className="text-xs text-muted-foreground">Expires 12/2028</p>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="ghost" className="w-full text-primary" onClick={handleManageSubscription}>
-              Update Payment Method <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
       </div>
 
       {/* Upgrade Call to Action */}
@@ -152,7 +120,7 @@ export default function BillingPage() {
           </CardContent>
           <CardFooter>
             <Button onClick={handleUpgrade} className="bg-primary text-primary-foreground">
-              Upgrade to Pro
+              Contact Support to Upgrade
             </Button>
           </CardFooter>
         </Card>
