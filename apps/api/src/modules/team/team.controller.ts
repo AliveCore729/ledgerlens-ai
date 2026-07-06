@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, UseGuards, Patch } from '@nestjs/common';
+import { Throttle } from "@nestjs/throttler";
 import { TeamService } from './team.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -13,6 +14,7 @@ export class TeamController {
     return this.teamService.getTeam(user.userId);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('invite')
   inviteMember(@CurrentUser() user: any, @Body() body: { email: string, role: string }) {
     return this.teamService.inviteMember(user.userId, body.email, body.role);
