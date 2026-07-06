@@ -16,6 +16,7 @@ export class AuditController {
   async getLogs(@CurrentUser() user: any) {
     const userOrg = await this.prisma.organizationUser.findFirst({
       where: { userId: user.userId },
+      orderBy: { createdAt: 'asc' },
     });
 
     if (!userOrg) {
