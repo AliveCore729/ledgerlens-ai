@@ -2,10 +2,11 @@ import { Controller, Get, Post, Body, UseGuards, Patch } from '@nestjs/common';
 import { Throttle } from "@nestjs/throttler";
 import { TeamService } from './team.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ActiveSessionGuard } from '../auth/active-session.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('team')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ActiveSessionGuard)
 export class TeamController {
   constructor(private readonly teamService: TeamService) {}
 

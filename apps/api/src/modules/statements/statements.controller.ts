@@ -5,11 +5,11 @@ import { PrismaService } from "../prisma/prisma.service";
 import { ActiveSessionGuard } from "../auth/active-session.guard";
 import * as fs from 'fs';
 
+@UseGuards(JwtAuthGuard, ActiveSessionGuard)
 @Controller("statements")
 export class StatementsController {
   constructor(private prisma: PrismaService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   async getUserStatements(@CurrentUser() user: any) {
     // Fetch all statements for the logged-in user's organization
@@ -28,7 +28,6 @@ export class StatementsController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, ActiveSessionGuard)
   @Get(':id')
   async getStatement(@Param('id') id: string, @CurrentUser() user: any) {
     const statement = await this.prisma.statement.findFirst({
@@ -45,7 +44,6 @@ export class StatementsController {
     return statement;
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteStatement(@Param('id') id: string, @CurrentUser() user: any) {
     const statement = await this.prisma.statement.findFirst({

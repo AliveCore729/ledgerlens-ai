@@ -3,9 +3,11 @@ import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { ActiveSessionGuard } from '../auth/active-session.guard';
 
 @Controller('admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ActiveSessionGuard)
 @Roles('SUPER_ADMIN')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
@@ -26,7 +28,11 @@ export class AdminController {
   }
 
   @Patch('users/:id/role')
-  updateUserRole(@Param('id') id: string, @Body() body: { role: string }) {
-    return this.adminService.updateUserRole(id, body.role);
+  updateUserRole(
+    @Param('id') id: string, 
+    @Body() body: { role: string },
+    @CurrentUser() user: any
+  ) {
+    return this.adminService.updateUserRole(id, body.role, user.userId);
   }
 }
