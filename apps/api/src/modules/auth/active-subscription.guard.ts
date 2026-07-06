@@ -8,8 +8,9 @@ export class ActiveSubscriptionGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
+    const orgId = user?.organizationId || request.headers['organization-id'];
     
-    if (!user || !user.organizationId) {
+    if (!user || !orgId) {
       return true; // Not an org-scoped route, or no token
     }
 
@@ -17,7 +18,7 @@ export class ActiveSubscriptionGuard implements CanActivate {
       where: {
         userId_organizationId: {
           userId: user.userId,
-          organizationId: user.organizationId
+          organizationId: orgId
         }
       },
       include: {

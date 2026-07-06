@@ -31,8 +31,17 @@ export class AuditActionInterceptor implements NestInterceptor {
         if (user && user.userId) {
           const resourceUrl = request.url;
           
-          // Attempt to extract org ID from params or body
-          const targetOrgId = request.params?.id || request.body?.organizationId || 'UNKNOWN';
+          let targetLabel = 'Target';
+          let targetId = request.params?.id || 'UNKNOWN';
+
+          if (action === 'ORG_SUBSCRIPTION_ACTIVATED') {
+            targetLabel = 'TargetOrg';
+          } else if (action === 'SUPER_ADMIN_ROLE_CHANGE') {
+            targetLabel = 'TargetUser';
+          } else if (request.body?.organizationId) {
+            targetLabel = 'TargetOrg';
+            targetId = request.body.organizationId;
+          }
 
           // Sanitize body to remove secrets before logging
           const sanitizedBody = { ...request.body };
@@ -44,7 +53,7 @@ export class AuditActionInterceptor implements NestInterceptor {
           }
 
           const payloadStr = JSON.stringify(sanitizedBody);
-          const resourceString = `URL: ${resourceUrl} | Method: ${request.method} | TargetOrg: ${targetOrgId} | Payload: ${payloadStr}`;
+          const resourceString = `URL: ${resourceUrl} | Method: ${request.method} | ${targetLabel}: ${targetId} | Payload: ${payloadStr}`;
 
           this.prisma.auditLog.create({
             data: {

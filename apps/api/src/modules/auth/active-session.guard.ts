@@ -28,13 +28,14 @@ export class ActiveSessionGuard implements CanActivate {
       throw new UnauthorizedException('Session expired due to role change. Please log in again.');
     }
 
-    // Verify organization membership if the token has an organizationId
-    if (user.organizationId) {
+    // Verify organization membership if the token has an organizationId or header is present
+    const orgId = user.organizationId || request.headers['organization-id'];
+    if (orgId) {
       const orgUser = await this.prisma.organizationUser.findUnique({
         where: {
           userId_organizationId: {
             userId: user.userId,
-            organizationId: user.organizationId
+            organizationId: orgId
           }
         }
       });
