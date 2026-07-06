@@ -13,9 +13,7 @@ export class UploadsService {
   async handleUpload(file: Express.Multer.File, user: any, filePassword?: string) {
     try {
       // Find the first organization the user belongs to (or mock if not found)
-      let org: any = await this.prisma.organizationUser.findFirst({
-        where: { userId: user.userId },
-        orderBy: { createdAt: 'asc' },
+      let org: any = await this.prisma.getUserPrimaryOrg(user.userId, {
         include: { organization: true },
       }).then(ou => ou?.organization);
       

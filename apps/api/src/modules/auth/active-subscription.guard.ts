@@ -13,9 +13,7 @@ export class ActiveSubscriptionGuard implements CanActivate {
     }
 
     // Derive the target organization exactly as the controllers do
-    const orgUser = await this.prisma.organizationUser.findFirst({
-      where: { userId: user.userId },
-      orderBy: { createdAt: 'asc' },
+    const orgUser = await this.prisma.getUserPrimaryOrg(user.userId, {
       include: {
         organization: {
           select: { subscriptionStatus: true }
