@@ -2,6 +2,7 @@ import { Controller, Get, Delete, Param, UseGuards, ForbiddenException } from "@
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { PrismaService } from "../prisma/prisma.service";
+import { ActiveSessionGuard } from "../auth/active-session.guard";
 import * as fs from 'fs';
 
 @Controller("statements")
@@ -11,11 +12,10 @@ export class StatementsController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async getUserStatements(@CurrentUser() user: any) {
-    // Fetch all statements for the logged-in user, including a count of their transactions
+    // Fetch all statements for the logged-in user's organization
     return this.prisma.statement.findMany({
       where: { 
-        // Using uploadedById based on Prisma schema
-        uploadedById: user.userId 
+        organization: { organizationUsers: { some: { userId: user.userId } } } 
       },
       include: {
         _count: {
@@ -28,15 +28,18 @@ export class StatementsController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ActiveSessionGuard)
   @Get(':id')
   async getStatement(@Param('id') id: string, @CurrentUser() user: any) {
-    const statement = await this.prisma.statement.findUnique({
-      where: { id }
+    const statement = await this.prisma.statement.findFirst({
+      where: { 
+        id,
+        organization: { organizationUsers: { some: { userId: user.userId } } }
+      }
     });
 
-    if (!statement || statement.uploadedById !== user.userId) {
-      throw new ForbiddenException('Statement not found');
+    if (!statement) {
+      throw new ForbiddenException('Statement not found or access denied');
     }
 
     return statement;
@@ -45,16 +48,15 @@ export class StatementsController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteStatement(@Param('id') id: string, @CurrentUser() user: any) {
-    const statement = await this.prisma.statement.findUnique({
-      where: { id }
+    const statement = await this.prisma.statement.findFirst({
+      where: { 
+        id,
+        organization: { organizationUsers: { some: { userId: user.userId } } }
+      }
     });
 
     if (!statement) {
-      throw new ForbiddenException('Statement not found');
-    }
-
-    if (statement.uploadedById !== user.userId) {
-      throw new ForbiddenException('You can only delete your own statements');
+      throw new ForbiddenException('Statement not found or access denied');
     }
 
     // Optionally try to delete the file from the filesystem to save space

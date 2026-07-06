@@ -4,6 +4,7 @@ import { TransactionsService } from './transactions.service';
 import { QueryTransactionsDto } from './dto/query-transactions.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ActiveSessionGuard } from "../auth/active-session.guard";
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @UseGuards(JwtAuthGuard)
@@ -43,6 +44,7 @@ export class TransactionsController {
     return this.transactionsService.reviewTransaction(id, user.userId, body.category);
   }
 
+  @UseGuards(ActiveSessionGuard)
   @Get('export')
   async export(
     @CurrentUser() user: any,
