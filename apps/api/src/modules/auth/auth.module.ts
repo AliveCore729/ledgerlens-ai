@@ -6,6 +6,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { JwtStrategy } from "./jwt.strategy";
 import { ActiveSessionGuard } from "./active-session.guard";
+import { ActiveSubscriptionGuard } from "./active-subscription.guard";
 
 
 @Module({
@@ -29,7 +30,7 @@ import { ActiveSessionGuard } from "./active-session.guard";
 
   controllers: [AuthController],
 
-  providers: [AuthService, JwtStrategy, ActiveSessionGuard],
-  exports: [ActiveSessionGuard],
+  providers: [AuthService, JwtStrategy, ActiveSessionGuard, ActiveSubscriptionGuard],
+  exports: [ActiveSessionGuard, ActiveSubscriptionGuard],
 })
 export class AuthModule {}

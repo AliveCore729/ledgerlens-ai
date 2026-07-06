@@ -17,6 +17,7 @@ import { extname } from "path";
 
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { ActiveSessionGuard } from "../auth/active-session.guard";
+import { ActiveSubscriptionGuard } from "../auth/active-subscription.guard";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 
@@ -26,7 +27,7 @@ import { UploadsService } from "./uploads.service";
 export class UploadsController {
   constructor(private uploadsService: UploadsService) {}
 
-  @UseGuards(JwtAuthGuard, ActiveSessionGuard)
+  @UseGuards(JwtAuthGuard, ActiveSessionGuard, ActiveSubscriptionGuard)
   @Post("statement")
   @UseInterceptors(
     FileInterceptor("file", {

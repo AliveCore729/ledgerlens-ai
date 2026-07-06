@@ -3,6 +3,7 @@ import { Throttle } from "@nestjs/throttler";
 import { TeamService } from './team.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ActiveSessionGuard } from '../auth/active-session.guard';
+import { ActiveSubscriptionGuard } from '../auth/active-subscription.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('team')
@@ -16,11 +17,13 @@ export class TeamController {
   }
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @UseGuards(ActiveSubscriptionGuard)
   @Post('invite')
   inviteMember(@CurrentUser() user: any, @Body() body: { email: string, role: string }) {
     return this.teamService.inviteMember(user.userId, body.email, body.role);
   }
 
+  @UseGuards(ActiveSubscriptionGuard)
   @Patch('organization')
   updateOrganization(@CurrentUser() user: any, @Body() body: { name: string }) {
     return this.teamService.updateOrganizationName(user.userId, body.name);

@@ -2,6 +2,7 @@ import { Controller, Get, Patch, Body, Param, UseGuards } from '@nestjs/common';
 import { VendorsService } from './vendors.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ActiveSessionGuard } from '../auth/active-session.guard';
+import { ActiveSubscriptionGuard } from '../auth/active-subscription.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('vendors')
@@ -15,6 +16,7 @@ export class VendorsController {
   }
 
   @Patch(':id/category')
+  @UseGuards(ActiveSubscriptionGuard)
   updateVendorCategory(
     @CurrentUser() user: any,
     @Param('id') vendorId: string,
