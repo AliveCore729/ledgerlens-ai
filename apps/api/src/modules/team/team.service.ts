@@ -9,6 +9,7 @@ export class TeamService {
     // For MVP, grab the user's first organization
     const userOrg = await this.prisma.organizationUser.findFirst({
       where: { userId },
+      orderBy: { createdAt: 'asc' },
       include: { organization: true },
     });
 
@@ -46,6 +47,7 @@ export class TeamService {
     // Find the current user's org
     const userOrg = await this.prisma.organizationUser.findFirst({
       where: { userId },
+      orderBy: { createdAt: 'asc' },
     });
 
     if (!userOrg) throw new BadRequestException('User does not belong to an organization');
@@ -80,6 +82,7 @@ export class TeamService {
   async updateOrganizationName(userId: string, name: string) {
     const userOrg = await this.prisma.organizationUser.findFirst({
       where: { userId, role: 'ADMIN' },
+      orderBy: { createdAt: 'asc' },
     });
 
     if (!userOrg) throw new BadRequestException('User is not an admin of any organization');

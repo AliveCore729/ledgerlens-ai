@@ -30,7 +30,8 @@ export class ActiveSessionGuard implements CanActivate {
 
     // Derive the target organization exactly as the controllers do (MVP assumes 1 user = 1 org)
     const orgUser = await this.prisma.organizationUser.findFirst({
-      where: { userId: user.userId }
+      where: { userId: user.userId },
+      orderBy: { createdAt: 'asc' }
     });
     
     if (!orgUser) {

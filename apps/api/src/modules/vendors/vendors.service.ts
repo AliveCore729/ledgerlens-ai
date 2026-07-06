@@ -8,6 +8,7 @@ export class VendorsService {
   async getVendors(userId: string) {
     const userOrg = await this.prisma.organizationUser.findFirst({
       where: { userId },
+      orderBy: { createdAt: 'asc' },
     });
 
     if (!userOrg) return [];
@@ -30,6 +31,7 @@ export class VendorsService {
   async updateVendorCategory(userId: string, vendorId: string, category: string) {
     const userOrg = await this.prisma.organizationUser.findFirst({
       where: { userId },
+      orderBy: { createdAt: 'asc' },
     });
 
     if (!userOrg) throw new NotFoundException('Organization not found');

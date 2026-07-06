@@ -8,6 +8,7 @@ export class BillingService {
   async getSubscription(userId: string) {
     const userOrg = await this.prisma.organizationUser.findFirst({
       where: { userId },
+      orderBy: { createdAt: 'asc' },
       include: {
         organization: {
           include: {

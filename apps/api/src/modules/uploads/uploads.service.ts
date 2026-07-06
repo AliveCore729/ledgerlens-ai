@@ -15,6 +15,7 @@ export class UploadsService {
       // Find the first organization the user belongs to (or mock if not found)
       let org: any = await this.prisma.organizationUser.findFirst({
         where: { userId: user.userId },
+        orderBy: { createdAt: 'asc' },
         include: { organization: true },
       }).then(ou => ou?.organization);
       
