@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -36,20 +36,11 @@ export class ActiveSessionGuard implements CanActivate {
             userId: user.userId,
             organizationId: user.organizationId
           }
-        },
-        include: {
-          organization: {
-            select: { subscriptionStatus: true }
-          }
         }
       });
       
       if (!orgUser) {
         throw new UnauthorizedException('You have been removed from this organization');
-      }
-
-      if (orgUser.organization.subscriptionStatus !== 'ACTIVE') {
-        throw new ForbiddenException('Organization subscription is not active. Please contact administration.');
       }
     }
 
