@@ -114,7 +114,7 @@ export default function PricingSection() {
             </ul>
             <Link href={token ? "/dashboard/billing" : "/register"} className="w-full">
               <button className="w-full py-3 rounded-xl bg-[#3054ff] hover:bg-[#2040e0] transition-colors font-medium flex items-center justify-center gap-2">
-                Get Premium <ArrowRight className="w-4 h-4" />
+                Contact Sales to Upgrade <ArrowRight className="w-4 h-4" />
               </button>
             </Link>
           </motion.div>
