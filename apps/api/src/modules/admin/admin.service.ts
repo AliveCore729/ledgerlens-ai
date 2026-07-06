@@ -8,7 +8,7 @@ export class AdminService {
   async getMetrics() {
     const totalUsers = await this.prisma.user.count();
     const totalOrgs = await this.prisma.organization.count();
-    const activeSubs = await this.prisma.subscription.count({ where: { status: 'ACTIVE' } });
+    const activeSubs = await this.prisma.organization.count({ where: { subscriptionStatus: 'ACTIVE' } });
     const statements = await this.prisma.statement.count();
     
     return {
@@ -23,7 +23,6 @@ export class AdminService {
   async getOrganizations() {
     return this.prisma.organization.findMany({
       include: {
-        subscription: true,
         _count: { select: { organizationUsers: true, statements: true } }
       },
       orderBy: { createdAt: 'desc' }
