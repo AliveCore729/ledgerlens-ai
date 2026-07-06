@@ -29,10 +29,7 @@ export class ActiveSessionGuard implements CanActivate {
     }
 
     // Derive the target organization exactly as the controllers do (MVP assumes 1 user = 1 org)
-    const orgUser = await this.prisma.organizationUser.findFirst({
-      where: { userId: user.userId },
-      orderBy: { createdAt: 'asc' }
-    });
+    const orgUser = await this.prisma.getUserPrimaryOrg(user.userId);
     
     if (!orgUser) {
       // If the user has no org at all, some global routes might still be valid, 

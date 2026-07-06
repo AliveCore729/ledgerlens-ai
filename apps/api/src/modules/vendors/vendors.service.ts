@@ -6,10 +6,7 @@ export class VendorsService {
   constructor(private prisma: PrismaService) {}
 
   async getVendors(userId: string) {
-    const userOrg = await this.prisma.organizationUser.findFirst({
-      where: { userId },
-      orderBy: { createdAt: 'asc' },
-    });
+    const userOrg = await this.prisma.getUserPrimaryOrg(userId);
 
     if (!userOrg) return [];
 
@@ -29,10 +26,7 @@ export class VendorsService {
   }
 
   async updateVendorCategory(userId: string, vendorId: string, category: string) {
-    const userOrg = await this.prisma.organizationUser.findFirst({
-      where: { userId },
-      orderBy: { createdAt: 'asc' },
-    });
+    const userOrg = await this.prisma.getUserPrimaryOrg(userId);
 
     if (!userOrg) throw new NotFoundException('Organization not found');
 

@@ -7,9 +7,7 @@ export class TeamService {
 
   async getTeam(userId: string) {
     // For MVP, grab the user's first organization
-    const userOrg = await this.prisma.organizationUser.findFirst({
-      where: { userId },
-      orderBy: { createdAt: 'asc' },
+    const userOrg = await this.prisma.getUserPrimaryOrg(userId, {
       include: { organization: true },
     });
 
@@ -45,10 +43,7 @@ export class TeamService {
 
   async inviteMember(userId: string, email: string, role: string) {
     // Find the current user's org
-    const userOrg = await this.prisma.organizationUser.findFirst({
-      where: { userId },
-      orderBy: { createdAt: 'asc' },
-    });
+    const userOrg = await this.prisma.getUserPrimaryOrg(userId);
 
     if (!userOrg) throw new BadRequestException('User does not belong to an organization');
 
@@ -80,9 +75,8 @@ export class TeamService {
   }
 
   async updateOrganizationName(userId: string, name: string) {
-    const userOrg = await this.prisma.organizationUser.findFirst({
-      where: { userId, role: 'ADMIN' },
-      orderBy: { createdAt: 'asc' },
+    const userOrg = await this.prisma.getUserPrimaryOrg(userId, {
+      where: { role: 'ADMIN' },
     });
 
     if (!userOrg) throw new BadRequestException('User is not an admin of any organization');

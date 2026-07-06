@@ -6,9 +6,7 @@ export class BillingService {
   constructor(private prisma: PrismaService) {}
 
   async getSubscription(userId: string) {
-    const userOrg = await this.prisma.organizationUser.findFirst({
-      where: { userId },
-      orderBy: { createdAt: 'asc' },
+    const userOrg = await this.prisma.getUserPrimaryOrg(userId, {
       include: {
         organization: {
           include: {

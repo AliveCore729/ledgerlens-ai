@@ -14,10 +14,7 @@ export class AuditController {
 
   @Get()
   async getLogs(@CurrentUser() user: any) {
-    const userOrg = await this.prisma.organizationUser.findFirst({
-      where: { userId: user.userId },
-      orderBy: { createdAt: 'asc' },
-    });
+    const userOrg = await this.prisma.getUserPrimaryOrg(user.userId);
 
     if (!userOrg) {
       throw new ForbiddenException('User does not belong to an organization');
