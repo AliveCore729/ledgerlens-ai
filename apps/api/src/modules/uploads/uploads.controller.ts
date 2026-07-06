@@ -16,6 +16,7 @@ import { diskStorage } from "multer";
 import { extname } from "path";
 
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { ActiveSessionGuard } from "../auth/active-session.guard";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 
@@ -25,7 +26,7 @@ import { UploadsService } from "./uploads.service";
 export class UploadsController {
   constructor(private uploadsService: UploadsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ActiveSessionGuard)
   @Post("statement")
   @UseInterceptors(
     FileInterceptor("file", {
