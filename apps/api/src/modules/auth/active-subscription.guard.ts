@@ -8,19 +8,13 @@ export class ActiveSubscriptionGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    const orgId = user?.organizationId || request.headers['organization-id'];
-    
-    if (!user || !orgId) {
+    if (!user || !user.userId) {
       return true; // Not an org-scoped route, or no token
     }
 
-    const orgUser = await this.prisma.organizationUser.findUnique({
-      where: {
-        userId_organizationId: {
-          userId: user.userId,
-          organizationId: orgId
-        }
-      },
+    // Derive the target organization exactly as the controllers do
+    const orgUser = await this.prisma.organizationUser.findFirst({
+      where: { userId: user.userId },
       include: {
         organization: {
           select: { subscriptionStatus: true }
