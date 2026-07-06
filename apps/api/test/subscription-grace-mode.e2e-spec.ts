@@ -111,6 +111,23 @@ describe('Subscription Grace Mode (e2e)', () => {
           expect(res.status).not.toBe(403);
         });
     });
+
+    it('should ALLOW GET /vendors (Testing shared helper)', () => {
+      return request(app.getHttpServer())
+        .get('/vendors')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+    });
+
+    it('should ALLOW GET /billing/subscription (Testing shared helper)', () => {
+      return request(app.getHttpServer())
+        .get('/billing/subscription')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe('ACTIVE');
+        });
+    });
   });
   
   describe('When Organization is EXPIRED', () => {
