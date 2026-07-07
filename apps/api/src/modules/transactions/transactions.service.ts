@@ -11,7 +11,7 @@ export class TransactionsService {
   private buildWhereClause(userId: string, query: QueryTransactionsDto): Prisma.TransactionWhereInput {
     const where: Prisma.TransactionWhereInput = {
         statement: {
-            uploadedById: userId // Ensure isolation by checking the statement owner
+            organization: { organizationUsers: { some: { userId } } }
         }
     };
 
@@ -92,7 +92,7 @@ export class TransactionsService {
     const transaction = await this.prisma.transaction.findFirst({
       where: { 
           id, 
-          statement: { uploadedById: userId } 
+          statement: { organization: { organizationUsers: { some: { userId } } } } 
         },
     });
 
@@ -114,7 +114,7 @@ export class TransactionsService {
   async getReviewPending(userId: string) {
     const transactions = await this.prisma.transaction.findMany({
       where: {
-        statement: { uploadedById: userId },
+        statement: { organization: { organizationUsers: { some: { userId } } } },
         isReviewed: false,
         category: { not: "UNCATEGORIZED" } // AI assigned something
       },
@@ -138,7 +138,7 @@ export class TransactionsService {
     // Fetch all transactions to group by category
     const transactions = await this.prisma.transaction.findMany({
       where: {
-        statement: { uploadedById: userId },
+        statement: { organization: { organizationUsers: { some: { userId } } } },
       },
       orderBy: { date: 'desc' }
     });
@@ -201,7 +201,7 @@ export class TransactionsService {
     return this.prisma.transaction.updateMany({
       where: {
         id: { in: ids },
-        statement: { uploadedById: userId }
+        statement: { organization: { organizationUsers: { some: { userId } } } }
       },
       data: {
         isReviewed: true

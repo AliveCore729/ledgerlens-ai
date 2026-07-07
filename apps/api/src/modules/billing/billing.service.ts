@@ -24,7 +24,9 @@ export class BillingService {
     const statementsProcessed = org._count.statements;
     
     // In manual mode, we just check if it's ACTIVE and set some limits based on org logic
-    const isActive = org.subscriptionStatus === 'ACTIVE';
+    const userRecord = await this.prisma.user.findUnique({ where: { id: userId } });
+    const isSuperAdmin = userRecord?.role === 'SUPER_ADMIN';
+    const isActive = org.subscriptionStatus === 'ACTIVE' || isSuperAdmin;
     const statementLimit = isActive ? 1000 : 1;
 
     return {

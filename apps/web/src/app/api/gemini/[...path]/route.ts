@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
   try {
-    const { path: pathParams } = await params;
-    const path = pathParams.join('/');
+    const path = params.path.join('/');
     const searchParams = req.nextUrl.searchParams.toString();
     const url = `https://generativelanguage.googleapis.com/${path}${searchParams ? `?${searchParams}` : ''}`;
 
     const reqBody = await req.json();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    
-    const apiKey = req.headers.get('x-goog-api-key');
-    if (apiKey) {
-      headers['x-goog-api-key'] = apiKey;
-    }
-
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(reqBody),
     });
 
