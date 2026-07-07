@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
@@ -35,6 +35,21 @@ export class UploadsService {
             }
           }
         });
+      }
+
+      // Enforce trial limit
+      const isActive = org.subscriptionStatus === 'ACTIVE';
+      if (!isActive) {
+        const statementCount = await this.prisma.statement.count({
+          where: { 
+            organizationId: org.id,
+            status: { not: 'FAILED' }
+          }
+        });
+        
+        if (statementCount >= 1) {
+          throw new ForbiddenException('Free trial limit reached. Please contact support to upgrade your plan to process more statements.');
+        }
       }
 
       const statement = await this.prisma.statement.create({
@@ -92,6 +107,9 @@ export class UploadsService {
       };
     } catch (error) {
       console.error(error);
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to process upload');
     }
   }
