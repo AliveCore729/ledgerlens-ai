@@ -19,5 +19,17 @@ export const adminService = {
   updateUserRole: async (id: string, role: string) => {
     const response = await api.patch(`/admin/users/${id}/role`, { role });
     return response.data;
+  },
+
+  activateSubscription: async (orgId: string, paymentReference?: string) => {
+    // Expires 1 year from now by default
+    const expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    
+    const response = await api.patch(`/admin/organizations/${orgId}/activate-subscription`, {
+      paymentReference: paymentReference || 'Manual',
+      expiresAt: expiresAt.toISOString()
+    });
+    return response.data;
   }
 };

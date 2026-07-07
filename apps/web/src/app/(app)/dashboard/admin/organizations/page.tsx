@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Building2, Search, MoreVertical, Edit2, Ban } from "lucide-react";
+import { Building2, Search, MoreVertical, Edit2, Ban, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,26 +28,37 @@ export default function OrganizationsPage() {
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchOrgs = async () => {
+    try {
+      const data = await adminService.getOrganizations();
+      setOrganizations(data.map((org: any) => ({
+        ...org,
+        plan: org.subscriptionStatus === 'ACTIVE' ? 'Pro' : 'Free',
+        status: org.subscriptionStatus === 'ACTIVE' ? 'Active' : 'Past Due',
+        users: org._count?.organizationUsers || 0,
+        statements: org._count?.statements || 0,
+        mrr: org.subscriptionStatus === 'ACTIVE' ? 29 : 0 
+      })));
+    } catch (error) {
+      toast.error("Failed to load organizations");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrgs = async () => {
-      try {
-        const data = await adminService.getOrganizations();
-        setOrganizations(data.map((org: any) => ({
-          ...org,
-          plan: org.subscription?.plan || 'Free',
-          status: org.subscription?.status === 'ACTIVE' ? 'Active' : 'Past Due',
-          users: org._count?.organizationUsers || 0,
-          statements: org._count?.statements || 0,
-          mrr: org.subscription?.status === 'ACTIVE' ? 29 : 0 // mockup MRR logic
-        })));
-      } catch (error) {
-        toast.error("Failed to load organizations");
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchOrgs();
   }, []);
+
+  const handleActivate = async (orgId: string) => {
+    try {
+      await adminService.activateSubscription(orgId);
+      toast.success("Subscription activated successfully");
+      fetchOrgs(); // refresh list
+    } catch (error) {
+      toast.error("Failed to activate subscription");
+    }
+  };
 
   const filteredOrgs = organizations.filter(o => o.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -122,6 +133,11 @@ export default function OrganizationsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {org.status !== "Active" && (
+                          <DropdownMenuItem onClick={() => handleActivate(org.id)} className="text-emerald-500">
+                            <CheckCircle className="mr-2 h-4 w-4" /> Activate Subscription
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem><Edit2 className="mr-2 h-4 w-4" /> Edit Details</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive"><Ban className="mr-2 h-4 w-4" /> Suspend Workspace</DropdownMenuItem>
                       </DropdownMenuContent>
