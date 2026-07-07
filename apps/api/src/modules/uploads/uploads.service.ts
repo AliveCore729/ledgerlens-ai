@@ -38,7 +38,9 @@ export class UploadsService {
       }
 
       // Enforce trial limit
-      const isActive = org.subscriptionStatus === 'ACTIVE';
+      const userRecord = await this.prisma.user.findUnique({ where: { id: user.userId } });
+      const isSuperAdmin = userRecord?.role === 'SUPER_ADMIN';
+      const isActive = org.subscriptionStatus === 'ACTIVE' || isSuperAdmin;
       if (!isActive) {
         const statementCount = await this.prisma.statement.count({
           where: { 
