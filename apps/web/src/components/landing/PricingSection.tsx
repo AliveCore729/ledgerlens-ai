@@ -52,7 +52,7 @@ export default function PricingSection() {
             <ul className="space-y-4 mb-8 flex-1">
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-white/40 shrink-0 mt-0.5" />
-                <span className="text-white/80">Process up to <strong className="text-white">2 statements</strong> total</span>
+                <span className="text-white/80">Process up to <strong className="text-white">1 statement</strong> total</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-white/40 shrink-0 mt-0.5" />

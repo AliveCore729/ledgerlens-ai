@@ -25,7 +25,7 @@ export class BillingService {
     
     // In manual mode, we just check if it's ACTIVE and set some limits based on org logic
     const isActive = org.subscriptionStatus === 'ACTIVE';
-    const statementLimit = isActive ? 1000 : 50;
+    const statementLimit = isActive ? 1000 : 1;
 
     return {
       status: org.subscriptionStatus,
