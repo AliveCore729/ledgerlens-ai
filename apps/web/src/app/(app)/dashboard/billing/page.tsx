@@ -12,6 +12,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { billingService } from "@/services/billing-service";
@@ -35,12 +44,8 @@ export default function BillingPage() {
     fetchSub();
   }, []);
 
-  const handleUpgrade = () => {
-    window.location.href = "mailto:support@ledgerlens.ai?subject=Upgrade%20to%20Pro%20Plan";
-  };
-
-  const handleManageSubscription = () => {
-    window.location.href = "mailto:support@ledgerlens.ai?subject=Manage%20Subscription";
+  const handleContactSupport = (subject: string) => {
+    window.location.href = `mailto:support@ledgerlens.ai?subject=${encodeURIComponent(subject)}`;
   };
 
   const planName = sub?.plan === "PRO" ? "Pro Plan" : "Basic Plan";
@@ -90,8 +95,50 @@ export default function BillingPage() {
             </div>
           </CardContent>
           <CardFooter className="bg-muted/30 pt-4 flex gap-4 border-t">
-            <Button variant="outline" onClick={handleManageSubscription}>Manage Subscription</Button>
-            <Button variant="outline" onClick={handleManageSubscription}>View Invoices</Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">Manage Subscription</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Manage Subscription</DialogTitle>
+                  <DialogDescription>
+                    We currently manage subscriptions manually to provide you with the best personalized support.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-4 py-4">
+                  <div className="bg-muted p-4 rounded-md text-sm">
+                    <p className="font-semibold mb-2">To manage your subscription, please contact us:</p>
+                    <p className="text-muted-foreground mb-4">You can request to upgrade your plan, update payment methods, or cancel your subscription by reaching out to our support team.</p>
+                    <p className="font-medium text-primary">support@ledgerlens.ai</p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => handleContactSupport('Manage Subscription')} className="w-full sm:w-auto">
+                    Email Support Team
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">View Invoices</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Invoices</DialogTitle>
+                  <DialogDescription>
+                    Your past invoices are available upon request. Please email our support team and we will send them to your registered email address.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="mt-4">
+                  <Button onClick={() => handleContactSupport('Request Invoices')} className="w-full sm:w-auto">
+                    Request Invoices
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardFooter>
         </Card>
 
@@ -119,9 +166,33 @@ export default function BillingPage() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button onClick={handleUpgrade} className="bg-primary text-primary-foreground">
-              Contact Support to Upgrade
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-primary-foreground">
+                  Contact Support to Upgrade
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Upgrade to Pro</DialogTitle>
+                  <DialogDescription>
+                    Unlock unlimited statement uploads, custom categorization rules, and priority support.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-4 py-4">
+                  <div className="bg-muted p-4 rounded-md text-sm">
+                    <p className="font-semibold mb-2">Ready to scale up?</p>
+                    <p className="text-muted-foreground mb-4">We are currently onboarding new Pro customers manually. Please send us an email to activate your unlimited subscription immediately.</p>
+                    <p className="font-medium text-primary">support@ledgerlens.ai</p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => handleContactSupport('Upgrade to Pro Plan')} className="w-full sm:w-auto">
+                    Email Sales Team
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardFooter>
         </Card>
       )}
