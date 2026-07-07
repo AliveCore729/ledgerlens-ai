@@ -22,9 +22,9 @@ export const adminService = {
   },
 
   activateSubscription: async (orgId: string, paymentReference?: string) => {
-    // Expires 1 year from now by default
+    // Expires 1 month from now by default
     const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
     
     const response = await api.patch(`/admin/organizations/${orgId}/activate-subscription`, {
       paymentReference: paymentReference || 'Manual',
