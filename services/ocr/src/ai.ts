@@ -97,7 +97,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           timeoutId = setTimeout(() => {
             controller.abort();
             reject(new Error("NETWORK_TIMEOUT"));
-          }, 25000);
+          }, 60000);
         });
         
         const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
@@ -148,7 +148,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           await sleep(10000);
           retries++;
         } else if (errMsg === "NETWORK_TIMEOUT" || errMsg.includes('timeout')) {
-          console.log(`Request timed out after 25s (likely proxy killed connection). Waiting 5s before retry...`);
+          console.log(`Request timed out after 60s (likely proxy killed connection). Waiting 5s before retry...`);
           await sleep(5000);
           retries++;
         } else {
