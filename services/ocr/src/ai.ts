@@ -88,11 +88,13 @@ export async function parseTransactions(rawText: string) {
         success = true;
       } catch (error: any) {
         if (error?.status === 429 || error?.message?.includes('429')) {
-          console.log(`Rate limit hit on chunk. Throwing to BullMQ for delayed retry...`);
-          throw new Error("RATE_LIMIT");
+          console.log(`Rate limit hit on chunk. Waiting 30s before retry...`);
+          await sleep(30000);
+          retries++;
         } else if (error?.status === 503 || error?.message?.includes('503')) {
-          console.log(`Gemini is experiencing high demand (503). Throwing to BullMQ for delayed retry...`);
-          throw new Error("RATE_LIMIT");
+          console.log(`Gemini is experiencing high demand (503). Waiting 10s before retry...`);
+          await sleep(10000);
+          retries++;
         } else {
           console.error("Failed to parse Gemini JSON for a chunk:", error);
           throw error; // Throw so the worker marks it as FAILED
