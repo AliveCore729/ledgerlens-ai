@@ -20,9 +20,20 @@ export async function parseTransactions(rawText: string) {
   let currentChunk = '';
   
   for (const line of lines) {
-    if (currentChunk.length + line.length > 1000) {
-      chunks.push(currentChunk);
+    if (currentChunk.length + line.length > 1500) {
+      if (currentChunk.trim().length > 0) chunks.push(currentChunk);
       currentChunk = '';
+      
+      // Forcefully slice massive single lines (e.g. PDFs missing newlines)
+      if (line.length > 1500) {
+        let remainingLine = line;
+        while (remainingLine.length > 1500) {
+          chunks.push(remainingLine.substring(0, 1500));
+          remainingLine = remainingLine.substring(1500);
+        }
+        currentChunk = remainingLine + '\n';
+        continue;
+      }
     }
     currentChunk += line + '\n';
   }
