@@ -22,7 +22,7 @@ import { ActiveSubscriptionGuard } from "./active-subscription.guard";
         secret: configService.get<string>("JWT_SECRET"),
 
         signOptions: {
-          expiresIn: "15m",
+          expiresIn: "7d",
         },
       }),
     }),
