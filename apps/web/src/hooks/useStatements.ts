@@ -21,7 +21,7 @@ export const useStatements = () => {
     },
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && data.some((s) => s.status === 'PROCESSING' || s.status === 'PENDING')) {
+      if (data && data.some((s) => ['PROCESSING', 'PENDING', 'UPLOADED', 'DELAYED'].includes(s.status))) {
         return 3000;
       }
       return false;
