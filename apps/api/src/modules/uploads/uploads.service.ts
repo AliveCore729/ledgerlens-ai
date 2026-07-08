@@ -75,11 +75,7 @@ export class UploadsService {
         fileData,
         filePassword,
       }, {
-        attempts: 10,
-        backoff: {
-          type: 'exponential',
-          delay: 60000 // Start with 1 minute delay, then 2m, 4m, 8m...
-        },
+        attempts: 1,
         removeOnComplete: { count: 1000 },
         removeOnFail: { count: 1000 }
       });
