@@ -1,4 +1,4 @@
-import { Worker } from 'bullmq';
+import { Worker, UnrecoverableError } from 'bullmq';
 import IORedis from 'ioredis';
 import { prisma } from '@ledgerlens/database';
 import { extractText } from './extractor';
@@ -34,7 +34,8 @@ const worker = new Worker(
     });
 
     if (!statement) {
-      throw new Error(`Statement ${statementId} not found`);
+      console.log(`Statement ${statementId} not found at job start. Skipping.`);
+      throw new UnrecoverableError(`Statement ${statementId} deleted before processing`);
     }
 
     let tempFilePath: string = '';
@@ -61,7 +62,7 @@ const worker = new Worker(
       const rawText = await extractText(tempFilePath, statement.mimeType, filePassword);
       
       // 2. AI Parsing
-      const parsedTransactions = await parseTransactions(rawText);
+      const parsedTransactions = await parseTransactions(rawText, statementId);
 
       // 3. Save Transactions
       if (parsedTransactions.length > 0) {
@@ -95,6 +96,10 @@ const worker = new Worker(
         await sendCompletionEmail(statement.uploadedBy.email, statement.fileName);
       }
     } catch (error: any) {
+      if (error?.message === "CANCELLED") {
+        throw new UnrecoverableError("Job was cancelled mid-flight.");
+      }
+
       console.error(`Failed to process statement ${statementId}:`, error);
 
       if (error?.message === "RATE_LIMIT") {
@@ -102,7 +107,7 @@ const worker = new Worker(
         await prisma.statement.update({
           where: { id: statementId },
           data: { status: 'DELAYED' }
-        });
+        }).catch(() => {});
         throw error; // Let BullMQ catch it and schedule exponential backoff
       }
 
@@ -110,7 +115,7 @@ const worker = new Worker(
       await prisma.statement.update({
         where: { id: statementId },
         data: { status: 'FAILED' }
-      });
+      }).catch(() => {});
       throw error;
     } finally {
       if (tempFilePath && fs.existsSync(tempFilePath)) {
