@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -46,5 +46,19 @@ export class AdminController {
     @CurrentUser() user: any
   ) {
     return this.adminService.activateSubscription(orgId, body.paymentReference, body.expiresAt, user.userId);
+  }
+
+  @Get('settings/maintenance')
+  getMaintenanceMode() {
+    return this.adminService.getMaintenanceMode();
+  }
+
+  @AuditAction('MAINTENANCE_MODE_TOGGLED')
+  @Post('settings/maintenance')
+  setMaintenanceMode(
+    @Body() body: { enabled: boolean },
+    @CurrentUser() user: any
+  ) {
+    return this.adminService.setMaintenanceMode(body.enabled, user.userId);
   }
 }
