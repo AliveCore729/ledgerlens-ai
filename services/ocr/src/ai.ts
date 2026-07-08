@@ -42,7 +42,7 @@ export async function parseTransactions(rawText: string) {
   let currentChunk = '';
   
   for (const line of lines) {
-    if (currentChunk.length + line.length > 8000) {
+    if (currentChunk.length + line.length > 3000) {
       chunks.push(currentChunk);
       currentChunk = '';
     }
@@ -79,7 +79,15 @@ export async function parseTransactions(rawText: string) {
 
     while (retries < maxRetries && !success) {
       try {
-        const result = await model.generateContent(prompt);
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error("NETWORK_TIMEOUT")), 25000);
+        });
+        
+        const result = await Promise.race([
+          model.generateContent(prompt),
+          timeoutPromise
+        ]);
+        
         const text = result.response.text();
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
@@ -94,6 +102,10 @@ export async function parseTransactions(rawText: string) {
         } else if (error?.status === 503 || error?.message?.includes('503')) {
           console.log(`Gemini is experiencing high demand (503). Waiting 10s before retry...`);
           await sleep(10000);
+          retries++;
+        } else if (error?.message === "NETWORK_TIMEOUT" || error?.message?.includes('timeout')) {
+          console.log(`Request timed out after 25s (likely proxy killed connection). Waiting 5s before retry...`);
+          await sleep(5000);
           retries++;
         } else {
           console.error("Failed to parse Gemini JSON for a chunk:", error);
