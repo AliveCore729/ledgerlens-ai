@@ -10,15 +10,9 @@ export async function parseTransactions(rawText: string) {
     throw new Error("GEMINI_API_KEY is missing. Please add your Gemini API key to the .env file.");
   }
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    generationConfig: {
-      responseMimeType: "application/json",
-    },
-  }, {
-    baseUrl: process.env.GEMINI_PROXY_URL
-  });
+  if (!process.env.GEMINI_PROXY_URL) {
+    throw new Error("GEMINI_PROXY_URL is missing.");
+  }
 
   // Chunk the raw text by lines to avoid slicing transactions in half
   const lines = rawText.split('\n');
@@ -78,12 +72,29 @@ export async function parseTransactions(rawText: string) {
           setTimeout(() => reject(new Error("NETWORK_TIMEOUT")), 25000);
         });
         
-        const result = await Promise.race([
-          model.generateContent(prompt),
+        const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
+        const fetchPromise = fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': process.env.GEMINI_API_KEY as string,
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        }).then(res => res.json());
+
+        const result: any = await Promise.race([
+          fetchPromise,
           timeoutPromise
         ]);
         
-        const text = result.response.text();
+        if (result.error) {
+          throw new Error(result.error.message || "Gemini API Error");
+        }
+
+        const text = result.candidates[0].content.parts[0].text;
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
           allTransactions = allTransactions.concat(parsed);
