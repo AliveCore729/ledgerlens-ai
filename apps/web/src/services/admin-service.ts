@@ -31,5 +31,15 @@ export const adminService = {
       expiresAt: expiresAt.toISOString()
     });
     return response.data;
+  },
+
+  getMaintenanceMode: async () => {
+    const response = await api.get('/admin/settings/maintenance');
+    return response.data;
+  },
+
+  setMaintenanceMode: async (enabled: boolean) => {
+    const response = await api.post('/admin/settings/maintenance', { enabled });
+    return response.data;
   }
 };

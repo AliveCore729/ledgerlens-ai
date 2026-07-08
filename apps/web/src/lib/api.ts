@@ -36,6 +36,11 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined' && window.location.pathname !== '/') {
         window.location.href = '/';
       }
+    } else if (error.response?.status === 503 && error.response?.data?.message === 'Maintenance Mode Active') {
+      console.warn('Maintenance mode active. Redirecting...');
+      if (typeof window !== 'undefined' && window.location.pathname !== '/maintenance') {
+        window.location.href = '/maintenance';
+      }
     }
     return Promise.reject(error);
   }

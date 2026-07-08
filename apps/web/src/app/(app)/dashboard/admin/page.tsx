@@ -20,11 +20,17 @@ export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
+
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
         const data = await adminService.getMetrics();
         setMetrics(data);
+        
+        const maintenanceData = await adminService.getMaintenanceMode();
+        setMaintenanceMode(maintenanceData.enabled);
       } catch (error) {
         toast.error("Failed to load platform metrics.");
       } finally {
@@ -34,17 +40,47 @@ export default function AdminDashboardPage() {
     fetchMetrics();
   }, []);
 
+  const toggleMaintenanceMode = async () => {
+    setIsToggling(true);
+    try {
+      const newState = !maintenanceMode;
+      await adminService.setMaintenanceMode(newState);
+      setMaintenanceMode(newState);
+      toast.success(`Maintenance mode ${newState ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      toast.error("Failed to toggle maintenance mode");
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Loading platform metrics...</div>;
   }
 
-
-
   return (
     <div className="p-4 md:p-8 space-y-8 min-h-screen bg-background text-foreground">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Platform Overview</h1>
-        <p className="text-muted-foreground">Global metrics and revenue for LedgerLens AI.</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Platform Overview</h1>
+          <p className="text-muted-foreground">Global metrics and revenue for LedgerLens AI.</p>
+        </div>
+        
+        <div className="flex items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
+          <div>
+            <h3 className="font-semibold text-sm">Maintenance Mode</h3>
+            <p className="text-xs text-muted-foreground">Lock down app for normal users</p>
+          </div>
+          <button
+            onClick={toggleMaintenanceMode}
+            disabled={isToggling}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary ${maintenanceMode ? 'bg-red-500' : 'bg-secondary'}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${maintenanceMode ? 'translate-x-6' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
