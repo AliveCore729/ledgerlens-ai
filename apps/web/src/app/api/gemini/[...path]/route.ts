@@ -8,11 +8,20 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
 
     const reqBody = await req.json();
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (req.headers.has('x-goog-api-key')) {
+      headers['x-goog-api-key'] = req.headers.get('x-goog-api-key') as string;
+    }
+    if (req.headers.has('x-goog-api-client')) {
+      headers['x-goog-api-client'] = req.headers.get('x-goog-api-client') as string;
+    }
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(reqBody),
     });
 
