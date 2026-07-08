@@ -1,8 +1,9 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { prisma } from '@ledgerlens/database';
 
-export async function parseTransactions(rawText: string) {
+export async function parseTransactions(rawText: string, statementId: string) {
   const envPath = path.resolve(__dirname, '../../../.env');
   dotenv.config({ path: envPath, override: true }); // Ensure latest .env is loaded
 
@@ -45,6 +46,15 @@ export async function parseTransactions(rawText: string) {
   const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
   for (const chunk of chunks) {
+    // Cooperative Cancellation Check
+    const statement = await prisma.statement.findUnique({
+      where: { id: statementId }
+    });
+    if (!statement || statement.status === 'FAILED') {
+      console.log(`Job cancelled mid-flight for statement ${statementId}. Stopping early.`);
+      throw new Error("CANCELLED");
+    }
+
     const prompt = `Extract the bank statement transactions from the following raw OCR text chunk. Focus on dates, times, amounts, transaction types (CREDIT or DEBIT), vendor names, and categorize them into standard financial categories. Ignore headers, footers, and non-transaction text.
 
   CRITICAL: 
