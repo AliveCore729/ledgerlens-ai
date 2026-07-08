@@ -132,3 +132,13 @@ worker.on('completed', (job) => {
 worker.on('failed', (job, err) => {
   console.log(`${job?.id} has failed with ${err.message}`);
 });
+
+const gracefulShutdown = async (signal: string) => {
+  console.log(`Received ${signal}, shutting down worker gracefully...`);
+  await worker.close();
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
