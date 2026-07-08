@@ -76,11 +76,18 @@ export async function parseTransactions(rawText: string) {
     let retries = 0;
     const maxRetries = 5;
     let success = false;
+    let lastError: any = null;
 
     while (retries < maxRetries && !success) {
       try {
+        const controller = new AbortController();
+        let timeoutId: NodeJS.Timeout;
+        
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error("NETWORK_TIMEOUT")), 25000);
+          timeoutId = setTimeout(() => {
+            controller.abort();
+            reject(new Error("NETWORK_TIMEOUT"));
+          }, 25000);
         });
         
         const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
@@ -93,7 +100,8 @@ export async function parseTransactions(rawText: string) {
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { responseMimeType: "application/json" }
-          })
+          }),
+          signal: controller.signal
         }).then(res => res.json());
 
         const result: any = await Promise.race([
@@ -101,18 +109,25 @@ export async function parseTransactions(rawText: string) {
           timeoutPromise
         ]);
         
+        clearTimeout(timeoutId!);
+        
         if (result.error) {
           const errMsg = result.error.message || "Gemini API Error";
           throw new Error(`[${result.error.code || 500}] ${errMsg}`);
         }
 
-        const text = result.candidates[0].content.parts[0].text;
+        let text = result.candidates[0].content.parts[0].text;
+        
+        // Strip markdown backticks if present
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
           allTransactions = allTransactions.concat(parsed);
         }
         success = true;
       } catch (error: any) {
+        lastError = error;
         const errMsg = String(error?.message || "");
         if (error?.status === 429 || errMsg.includes('429')) {
           console.log(`Rate limit hit on chunk. Waiting 30s before retry...`);
@@ -134,7 +149,11 @@ export async function parseTransactions(rawText: string) {
     }
 
     if (!success) {
-      throw new Error("Exhausted retries for chunk due to rate limits.");
+      const errMsg = String(lastError?.message || "");
+      if (lastError?.status === 429 || errMsg.includes('429')) {
+        throw new Error("RATE_LIMIT");
+      }
+      throw lastError || new Error("Exhausted retries for chunk.");
     }
   }
 
