@@ -15,22 +15,26 @@ export async function parseTransactions(rawText: string, statementId: string) {
     throw new Error("GEMINI_PROXY_URL is missing.");
   }
 
+  if (rawText.length > 150000) {
+    throw new Error("Statement is too large to process. Please split it into smaller files or fewer pages.");
+  }
+
   // Chunk the raw text by lines to avoid slicing transactions in half
   const lines = rawText.split('\n');
   const chunks = [];
   let currentChunk = '';
   
   for (const line of lines) {
-    if (currentChunk.length + line.length > 1500) {
+    if (currentChunk.length + line.length > 15000) {
       if (currentChunk.trim().length > 0) chunks.push(currentChunk);
       currentChunk = '';
       
       // Forcefully slice massive single lines (e.g. PDFs missing newlines)
-      if (line.length > 1500) {
+      if (line.length > 15000) {
         let remainingLine = line;
-        while (remainingLine.length > 1500) {
-          chunks.push(remainingLine.substring(0, 1500));
-          remainingLine = remainingLine.substring(1500);
+        while (remainingLine.length > 15000) {
+          chunks.push(remainingLine.substring(0, 15000));
+          remainingLine = remainingLine.substring(15000);
         }
         currentChunk = remainingLine + '\n';
         continue;
