@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { RedisService } from '../../modules/redis/redis.service';
-import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class MaintenanceGuard implements CanActivate {
@@ -16,7 +15,7 @@ export class MaintenanceGuard implements CanActivate {
     }
 
     // Always allow auth routes so admins can still log in
-    if (request.path.startsWith('/auth/')) {
+    if (request.path.startsWith('/api/v1/auth/') || request.path.startsWith('/auth/')) {
       return true;
     }
 
@@ -25,9 +24,12 @@ export class MaintenanceGuard implements CanActivate {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       try {
-        const decoded = jwt.decode(token) as any;
-        if (decoded && decoded.role === 'SUPER_ADMIN') {
-          return true; // Super Admins bypass maintenance mode
+        const payloadBase64 = token.split('.')[1];
+        if (payloadBase64) {
+          const decoded = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf8'));
+          if (decoded && decoded.role === 'SUPER_ADMIN') {
+            return true; // Super Admins bypass maintenance mode
+          }
         }
       } catch (e) {
         // ignore decode errors, fallback to blocking
