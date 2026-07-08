@@ -20,6 +20,8 @@ import { BillingModule } from './modules/billing/billing.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { TeamModule } from './modules/team/team.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { MaintenanceGuard } from './common/guards/maintenance.guard';
 
 @Module({
   imports: [
@@ -92,9 +94,14 @@ import { AuditModule } from './modules/audit/audit.module';
     BillingModule,
     AdminModule,
     TeamModule,
-    AuditModule
+    AuditModule,
+    RedisModule
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: MaintenanceGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

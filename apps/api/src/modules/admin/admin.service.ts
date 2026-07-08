@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private redisService: RedisService) {}
 
   async getMetrics() {
     const totalUsers = await this.prisma.user.count();
@@ -80,5 +81,15 @@ export class AdminService {
     });
 
     return updatedOrg;
+  }
+
+  async getMaintenanceMode() {
+    const status = await this.redisService.get('system:maintenance_mode');
+    return { enabled: status === 'true' };
+  }
+
+  async setMaintenanceMode(enabled: boolean, adminUserId: string) {
+    await this.redisService.set('system:maintenance_mode', enabled ? 'true' : 'false');
+    return { enabled };
   }
 }
