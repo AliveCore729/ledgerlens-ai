@@ -102,7 +102,8 @@ export async function parseTransactions(rawText: string) {
         ]);
         
         if (result.error) {
-          throw new Error(result.error.message || "Gemini API Error");
+          const errMsg = result.error.message || "Gemini API Error";
+          throw new Error(`[${result.error.code || 500}] ${errMsg}`);
         }
 
         const text = result.candidates[0].content.parts[0].text;
@@ -112,15 +113,16 @@ export async function parseTransactions(rawText: string) {
         }
         success = true;
       } catch (error: any) {
-        if (error?.status === 429 || error?.message?.includes('429')) {
+        const errMsg = String(error?.message || "");
+        if (error?.status === 429 || errMsg.includes('429')) {
           console.log(`Rate limit hit on chunk. Waiting 30s before retry...`);
           await sleep(30000);
           retries++;
-        } else if (error?.status === 503 || error?.message?.includes('503')) {
+        } else if (error?.status === 503 || errMsg.includes('503') || errMsg.includes('high demand') || errMsg.includes('overloaded')) {
           console.log(`Gemini is experiencing high demand (503). Waiting 10s before retry...`);
           await sleep(10000);
           retries++;
-        } else if (error?.message === "NETWORK_TIMEOUT" || error?.message?.includes('timeout')) {
+        } else if (errMsg === "NETWORK_TIMEOUT" || errMsg.includes('timeout')) {
           console.log(`Request timed out after 25s (likely proxy killed connection). Waiting 5s before retry...`);
           await sleep(5000);
           retries++;
