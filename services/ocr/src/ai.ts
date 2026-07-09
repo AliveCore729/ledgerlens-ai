@@ -153,7 +153,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } }
+            generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 }, maxOutputTokens: 65536 }
           }),
           signal: controller.signal
         }).then(async res => {
