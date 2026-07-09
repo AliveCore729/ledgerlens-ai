@@ -44,16 +44,16 @@ export async function parseTransactions(rawText: string, statementId: string) {
   let currentChunk = '';
   
   for (const line of lines) {
-    if (currentChunk.length + line.length > 7500) {
+    if (currentChunk.length + line.length > 3500) {
       if (currentChunk.trim().length > 0) chunks.push(currentChunk);
       currentChunk = '';
       
       // Forcefully slice massive single lines (e.g. PDFs missing newlines)
-      if (line.length > 7500) {
+      if (line.length > 3500) {
         let remainingLine = line;
-        while (remainingLine.length > 7500) {
-          chunks.push(remainingLine.substring(0, 7500));
-          remainingLine = remainingLine.substring(7500);
+        while (remainingLine.length > 3500) {
+          chunks.push(remainingLine.substring(0, 3500));
+          remainingLine = remainingLine.substring(3500);
         }
         currentChunk = remainingLine + '\n';
         continue;
