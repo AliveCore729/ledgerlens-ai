@@ -44,10 +44,13 @@ const worker = new Worker(
     const crypto = require('crypto');
 
     try {
-      // Update status to processing
+      // Update status to processing and clear any existing checkpointed transactions
       await prisma.statement.update({
         where: { id: statementId },
         data: { status: 'PROCESSING' }
+      });
+      await prisma.transaction.deleteMany({
+        where: { statementId: statementId }
       });
 
       // Write base64 to temp file since containers have isolated disks
@@ -64,23 +67,7 @@ const worker = new Worker(
       // 2. AI Parsing
       const parsedTransactions = await parseTransactions(rawText, statementId);
 
-      // 3. Save Transactions
-      if (parsedTransactions.length > 0) {
-        const now = new Date();
-        await prisma.transaction.createMany({
-          data: parsedTransactions.map((tx: any, index: number) => ({
-            statementId: statement.id,
-            date: tx.date,
-            time: tx.time || null,
-            amount: tx.amount,
-            type: tx.type,
-            vendor: tx.vendor,
-            category: tx.category,
-            raw: tx.narration || tx.vendor,
-            createdAt: new Date(now.getTime() + index) // Offset by index to strictly preserve statement order
-          }))
-        });
-      }
+      // 3. Transactions are now checkpointed (saved) chunk-by-chunk inside parseTransactions!
 
       // Update status to completed
       await prisma.statement.update({
