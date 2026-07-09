@@ -25,16 +25,16 @@ export async function parseTransactions(rawText: string, statementId: string) {
   let currentChunk = '';
   
   for (const line of lines) {
-    if (currentChunk.length + line.length > 15000) {
+    if (currentChunk.length + line.length > 7500) {
       if (currentChunk.trim().length > 0) chunks.push(currentChunk);
       currentChunk = '';
       
       // Forcefully slice massive single lines (e.g. PDFs missing newlines)
-      if (line.length > 15000) {
+      if (line.length > 7500) {
         let remainingLine = line;
-        while (remainingLine.length > 15000) {
-          chunks.push(remainingLine.substring(0, 15000));
-          remainingLine = remainingLine.substring(15000);
+        while (remainingLine.length > 7500) {
+          chunks.push(remainingLine.substring(0, 7500));
+          remainingLine = remainingLine.substring(7500);
         }
         currentChunk = remainingLine + '\n';
         continue;
@@ -116,7 +116,14 @@ export async function parseTransactions(rawText: string, statementId: string) {
             generationConfig: { responseMimeType: "application/json" }
           }),
           signal: controller.signal
-        }).then(res => res.json());
+        }).then(async res => {
+          const contentType = res.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            const text = await res.text();
+            throw new Error(`[PROXY_ERROR] Non-JSON response from proxy: ${text.substring(0, 50)}...`);
+          }
+          return res.json();
+        });
 
         const result: any = await Promise.race([
           fetchPromise,
@@ -151,8 +158,8 @@ export async function parseTransactions(rawText: string, statementId: string) {
           console.log(`Gemini is experiencing high demand (503). Waiting 10s before retry...`);
           await sleep(10000);
           retries++;
-        } else if (errMsg === "NETWORK_TIMEOUT" || errMsg.includes('timeout')) {
-          console.log(`Request timed out after 60s (likely proxy killed connection). Waiting 5s before retry...`);
+        } else if (errMsg === "NETWORK_TIMEOUT" || errMsg.includes('timeout') || errMsg.includes('PROXY_ERROR')) {
+          console.log(`Request timed out or proxy failed (likely Vercel killed connection). Waiting 5s before retry...`);
           await sleep(5000);
           retries++;
         } else {
