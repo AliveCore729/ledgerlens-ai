@@ -142,7 +142,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           }, 60000);
         });
         
-        const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash-lite:generateContent`;
+        const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
         const fetchPromise = fetch(url, {
           method: 'POST',
           headers: {
@@ -151,7 +151,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
+            generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } }
           }),
           signal: controller.signal
         }).then(async res => {
