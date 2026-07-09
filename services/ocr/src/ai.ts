@@ -142,7 +142,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           }, 60000);
         });
         
-        const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-1.5-flash:generateContent`;
+        const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash-lite:generateContent`;
         const fetchPromise = fetch(url, {
           method: 'POST',
           headers: {
