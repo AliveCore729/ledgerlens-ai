@@ -6,8 +6,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
   try {
     const resolvedParams = await params;
     const path = resolvedParams.path.join('/');
-    const searchParams = req.nextUrl.searchParams.toString();
-    const url = `https://generativelanguage.googleapis.com/${path}${searchParams ? `?${searchParams}` : ''}`;
+    const searchParams = req.nextUrl.searchParams;
+    searchParams.delete('path'); // Next.js merges dynamic route params into searchParams
+    const searchParamsString = searchParams.toString();
+    const url = `https://generativelanguage.googleapis.com/${path}${searchParamsString ? `?${searchParamsString}` : ''}`;
 
     const reqBody = await req.json();
 
