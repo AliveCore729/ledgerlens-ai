@@ -101,7 +101,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
 
   CRITICAL: 
   - For 'date', you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
-  - For 'amount', you MUST extract the actual transaction amount (the Credit or Debit column). CRITICAL: Do NOT hallucinate or guess digits. The extracted amount MUST EXACTLY match the number printed on the line. The Balance is almost ALWAYS the very last number on the row. The transaction amount is the number BEFORE the balance. NEVER output the Balance number as the amount!
+  - For 'amount', you MUST extract the actual transaction amount. CRITICAL: OCR frequently misreads digits (e.g. reading '301' as '101'). To fix this, you MUST mathematically verify the amount using the Balance column! The transaction amount MUST exactly equal the difference between the current row's Balance and the previous row's Balance (or Opening Balance). If the printed amount does not match the math, TRUST THE MATH and output the mathematically calculated amount!
   - For 'time', extract the exact time from the statement line. If no time is explicitly visible, leave it blank.
   - For 'vendor', provide ONLY a short, clean business name (e.g., "Amazon", "Uber"). Strip out any transaction IDs or filler words like "POS", "UPI". If it's a UPI/QR payment, extract the merchant name from the VPA string (e.g. 'paytmqr...' -> 'Paytm Merchant').
   - For 'narration', provide the exact full original text of the transaction line as it appears in the statement.
@@ -116,6 +116,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
     "date": "YYYY-MM-DD",
     "time": "HH:MM",
     "amount": 12.50,
+    "balance": 1938.64,
     "type": "CREDIT" | "DEBIT",
     "vendor": "Clean Merchant Name",
     "category": "Food & Dining",
