@@ -198,13 +198,9 @@ export async function parseTransactions(rawText: string, statementId: string) {
           console.log(`Gemini is experiencing high demand (503). Waiting 10s before retry...`);
           await sleep(10000);
           retries++;
-        } else if (errMsg === "NETWORK_TIMEOUT" || errMsg.includes('timeout') || errMsg.includes('PROXY_ERROR')) {
-          console.log(`Request timed out or proxy failed (likely Vercel killed connection). Waiting 5s before retry...`);
-          await sleep(5000);
-          retries++;
         } else {
           console.error("Failed to parse Gemini JSON for a chunk:", error);
-          throw error; // Throw so the worker marks it as FAILED
+          throw error; // Throw immediately on timeouts to prevent background double-billing
         }
       }
     }
