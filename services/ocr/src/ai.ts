@@ -3,6 +3,25 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { prisma } from '@ledgerlens/database';
 
+function looksLikeTransactionPage(chunk: string): boolean {
+  const lines = chunk.split('\n');
+  
+  for (const line of lines) {
+    const hasDate = /\b(\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4}|\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{0,4})\b/i.test(line);
+    
+    // We intentionally keep this loose. False negatives (skipping real data) are catastrophic. 
+    // A false positive (processing filler) just costs ~0.05 INR.
+    // If it has NEITHER a date NOR an amount, it's flagged.
+    const hasAmount = /\b(₹|\$|Rs\.?)?\s*\d{1,9}(,\d{3})*(\.\d{2})?\s*(cr|dr|\/-)?\b/i.test(line);
+    
+    if (hasDate || hasAmount) {
+      return true; 
+    }
+  }
+  
+  return false; 
+}
+
 export async function parseTransactions(rawText: string, statementId: string) {
   const envPath = path.resolve(__dirname, '../../../.env');
   dotenv.config({ path: envPath, override: true }); // Ensure latest .env is loaded
@@ -49,7 +68,26 @@ export async function parseTransactions(rawText: string, statementId: string) {
   let allTransactions: any[] = [];
   const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+  let chunkIndex = 0;
   for (const chunk of chunks) {
+    chunkIndex++;
+    
+    if (!looksLikeTransactionPage(chunk)) {
+      console.log(`[SKIPPED] Chunk ${chunkIndex} automatically skipped (No dates or amounts found).`);
+      await prisma.skippedChunkLog.create({
+        data: {
+          statementId,
+          chunkIndex,
+          charCount: chunk.length,
+          contentPreview: chunk.substring(0, 500),
+          isLogOnly: false
+        }
+      }).catch(err => console.error("Failed to log skipped chunk:", err));
+      
+      // Officially skip the Gemini API call for this blank/fluff chunk!
+      continue;
+    }
+
     // Cooperative Cancellation Check
     const statement = await prisma.statement.findUnique({
       where: { id: statementId }
