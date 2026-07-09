@@ -183,7 +183,22 @@ export async function parseTransactions(rawText: string, statementId: string) {
         text = text.replace(/```json/g, '').replace(/```/g, '').trim();
         
         const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log(`Checkpointing ${parsed.length} transactions from chunk...`);
+          const now = new Date();
+          await prisma.transaction.createMany({
+            data: parsed.map((tx: any, index: number) => ({
+              statementId: statementId,
+              date: tx.date,
+              time: tx.time || null,
+              amount: tx.amount,
+              type: tx.type,
+              vendor: tx.vendor,
+              category: tx.category,
+              raw: tx.narration || tx.vendor,
+              createdAt: new Date(now.getTime() + index) // Offset by index to preserve order within chunk
+            }))
+          });
           allTransactions = allTransactions.concat(parsed);
         }
         success = true;
