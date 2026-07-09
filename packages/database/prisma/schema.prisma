@@ -99,6 +99,7 @@ model Statement {
   uploadedBy     User?           @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 
   transactions   Transaction[]
+  skippedChunkLogs SkippedChunkLog[]
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -147,4 +148,15 @@ model AuditLog {
   action         String       // e.g., "STATEMENT_UPLOADED", "SETTINGS_UPDATED"
   resource       String       // e.g., "Statement: 5555...pdf"
   createdAt      DateTime     @default(now())
+}
+
+model SkippedChunkLog {
+  id             String    @id @default(uuid())
+  statementId    String
+  statement      Statement @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  chunkIndex     Int
+  charCount      Int
+  contentPreview String    
+  isLogOnly      Boolean   @default(true)
+  createdAt      DateTime  @default(now())
 }
