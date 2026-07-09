@@ -101,14 +101,15 @@ export async function parseTransactions(rawText: string, statementId: string) {
 
   CRITICAL: 
   - For 'date', you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
-  - For 'amount', you MUST extract the actual transaction amount (the Credit or Debit column). CRITICAL: Statement rows typically have 3 columns at the end: [Debit, Credit, Balance]. The Balance is almost ALWAYS the very last number on the row. The transaction amount is the number BEFORE the balance. NEVER output the Balance number as the amount! If a line only contains a balance, ignore it completely.
-  - For 'time', extract the exact time from the statement line (e.g. "14:30", "2:30 PM", "14:30:00"). If no time is explicitly visible on the line, leave it blank or null.
-  - For 'vendor', provide ONLY a short, clean business name (e.g., "Amazon", "Uber", "Starbucks"). Strip out any transaction IDs, terminal numbers, or filler words like "POS", "UPI", "PAYMENT".
+  - For 'amount', you MUST extract the actual transaction amount (the Credit or Debit column). CRITICAL: Do NOT hallucinate or guess digits. The extracted amount MUST EXACTLY match the number printed on the line. The Balance is almost ALWAYS the very last number on the row. The transaction amount is the number BEFORE the balance. NEVER output the Balance number as the amount!
+  - For 'time', extract the exact time from the statement line. If no time is explicitly visible, leave it blank.
+  - For 'vendor', provide ONLY a short, clean business name (e.g., "Amazon", "Uber"). Strip out any transaction IDs or filler words like "POS", "UPI". If it's a UPI/QR payment, extract the merchant name from the VPA string (e.g. 'paytmqr...' -> 'Paytm Merchant').
   - For 'narration', provide the exact full original text of the transaction line as it appears in the statement.
   - For 'category', you MUST map it to one of the following standard categories: Income, Food & Dining, Travel & Transportation, Software & Subscriptions, Utilities & Bills, Rent & Housing, Salary & Payroll, Office Supplies, Marketing & Advertising, Bank Fees & Charges, Transfers & Investments, Healthcare & Insurance, Shopping & Retail, Entertainment & Leisure, Taxes & Fines, or Misc. 
   - CATEGORY RULES:
-    1. For generic UPI, NEFT, IMPS, RTGS, or wire transfers to/from individuals where the exact purpose is unknown, categorize as "Transfers & Investments".
-    2. Try your absolute best to infer the category from the vendor name before falling back to "Misc".
+    1. For UPI/IMPS/NEFT transfers, look closely at the receiver's name or VPA string. If it contains business keywords ('tech', 'retail', 'qr', 'private', 'bill', 'amazon'), categorize it semantically (e.g., 'Shopping & Retail', 'Utilities & Bills', 'Software & Subscriptions').
+    2. ONLY use 'Transfers & Investments' for peer-to-peer transfers to human names, self bank transfers, or credit card bill payments.
+    3. Try your absolute best to infer a specific category from the vendor name before falling back to "Misc".
 
   You MUST respond strictly with a valid JSON array of objects using exactly these keys:
   [{
