@@ -7,9 +7,16 @@ export class MaintenanceGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    
+
     // Check if maintenance mode is enabled in Redis
-    const isMaintenanceMode = await this.redisService.get('system:maintenance_mode');
+    // Fail open: if Redis is unavailable, assume NOT in maintenance mode
+    let isMaintenanceMode: string | null = null;
+    try {
+      isMaintenanceMode = await this.redisService.get('system:maintenance_mode');
+    } catch {
+      return true; // Redis unreachable — don't block traffic
+    }
+
     if (isMaintenanceMode !== 'true') {
       return true; // Not in maintenance, let everything pass
     }
