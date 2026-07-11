@@ -88,7 +88,7 @@ services:
       dockerfile: Dockerfile.web
       args:
         # NEXT_PUBLIC_* vars are baked into the JS bundle at build time.
-        # With Nginx, the browser hits http://<VM-IP>/api/v1 — no port needed.
+        # Domain is now https://shreyanshjain.site — set in .env.production
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
     container_name: ledgerlens-web
@@ -107,8 +107,11 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Let's Encrypt certs provisioned by certbot on the host
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - web
       - api
