@@ -14,12 +14,17 @@ async function bootstrap() {
     origin: [
       "http://localhost:3000",
       "https://ledgerlens-ai-web.vercel.app",
+      "https://shreyanshjain.site",
       process.env.FRONTEND_URL,
     ].filter(Boolean) as string[],
     credentials: true,
   });
 
-  app.use(helmet());
+  // Override helmet's default Cross-Origin-Opener-Policy so the
+  // Google OAuth popup can communicate back to the parent window
+  app.use(helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  }));
 
   app.use(compression());
 
