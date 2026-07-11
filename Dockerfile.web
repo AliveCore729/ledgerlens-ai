@@ -1,0 +1,68 @@
+# -----------------------------------
+# Stage 1: Build the Application
+# -----------------------------------
+FROM node:20-alpine AS builder
+
+# Install pnpm and openssl
+RUN apk add --no-cache openssl libc6-compat
+RUN npm install -g pnpm@9.0.0
+
+WORKDIR /app
+
+# Copy configuration files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/database/package.json ./packages/database/
+COPY services/ocr/package.json ./services/ocr/
+COPY apps/web/package.json ./apps/web/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the source code
+COPY . .
+
+# Generate Prisma Client (crucial for @ledgerlens/database)
+RUN cd packages/database && npx prisma generate
+
+# Build-time environment variables for Next.js (NEXT_PUBLIC_* are baked into the JS bundle)
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+# Build the Web App (Next.js)
+RUN pnpm run build --filter=web
+
+# -----------------------------------
+# Stage 2: Production Image
+# -----------------------------------
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Copy standalone output from builder
+COPY --from=builder /app/apps/web/public ./apps/web/public
+
+# Automatically leverage output traces to reduce image size
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+
+USER nextjs
+
+EXPOSE 3000
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Note: standalone mode creates a minimal server.js inside apps/web
+CMD ["node", "apps/web/server.js"]

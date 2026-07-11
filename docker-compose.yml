@@ -82,6 +82,25 @@ services:
     networks:
       - ledgerlens-net
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        # NEXT_PUBLIC_* vars are baked into the JS bundle at build time.
+        # Set NEXT_PUBLIC_API_URL to your VM's public IP and the API port.
+        # Example: http://20.1.2.3:10000/api/v1
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+    container_name: ledgerlens-web
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - ledgerlens-net
+
 networks:
   ledgerlens-net:
     driver: bridge
