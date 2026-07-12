@@ -63,5 +63,5 @@ WORKDIR /app/apps/api
 # Expose API port
 EXPOSE 10000
 
-# Start the NestJS application
-CMD ["node", "dist/main.js"]
+# Startup script: push schema then start API
+CMD sh -c "cd /app/packages/database && npx prisma db push --schema=./prisma/schema.prisma --skip-generate && cd /app/apps/api && node dist/main.js"
