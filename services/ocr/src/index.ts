@@ -64,10 +64,12 @@ const worker = new Worker(
       // 1. Extract Text
       const rawText = await extractText(tempFilePath, statement.mimeType, filePassword);
       
-      // 2. AI Parsing
-      const parsedTransactions = await parseTransactions(rawText, statementId);
+      // 2. AI Parsing (Extraction only)
+      await parseTransactions(rawText, statementId);
 
-      // 3. Transactions are now checkpointed (saved) chunk-by-chunk inside parseTransactions!
+      // 3. Transactions are checkpointed inside parseTransactions. Now we orchestrate categorization.
+      const { categorizeTransactions } = require('./categorizeTransactions');
+      await categorizeTransactions(statementId);
 
       // Update status to completed
       await prisma.statement.update({

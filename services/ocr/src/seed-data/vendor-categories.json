@@ -1,0 +1,130 @@
+[
+  {
+    "normalizedKey": "SWIGGY",
+    "category": "Food & Dining"
+  },
+  {
+    "normalizedKey": "ZOMATO",
+    "category": "Food & Dining"
+  },
+  {
+    "normalizedKey": "EATSURE",
+    "category": "Food & Dining"
+  },
+  {
+    "normalizedKey": "UBER",
+    "category": "Travel & Transportation"
+  },
+  {
+    "normalizedKey": "OLA",
+    "category": "Travel & Transportation"
+  },
+  {
+    "normalizedKey": "IRCTC",
+    "category": "Travel & Transportation"
+  },
+  {
+    "normalizedKey": "RAPIDO",
+    "category": "Travel & Transportation"
+  },
+  {
+    "normalizedKey": "MAKEMYTRIP",
+    "category": "Travel & Transportation"
+  },
+  {
+    "normalizedKey": "REDBUS",
+    "category": "Travel & Transportation"
+  },
+  {
+    "normalizedKey": "AMAZON",
+    "category": "Shopping & Retail"
+  },
+  {
+    "normalizedKey": "FLIPKART",
+    "category": "Shopping & Retail"
+  },
+  {
+    "normalizedKey": "MYNTRA",
+    "category": "Shopping & Retail"
+  },
+  {
+    "normalizedKey": "AJIO",
+    "category": "Shopping & Retail"
+  },
+  {
+    "normalizedKey": "MEESHO",
+    "category": "Shopping & Retail"
+  },
+  {
+    "normalizedKey": "NETFLIX",
+    "category": "Software & Subscriptions"
+  },
+  {
+    "normalizedKey": "SPOTIFY",
+    "category": "Software & Subscriptions"
+  },
+  {
+    "normalizedKey": "HOTSTAR",
+    "category": "Software & Subscriptions"
+  },
+  {
+    "normalizedKey": "PRIME",
+    "category": "Software & Subscriptions"
+  },
+  {
+    "normalizedKey": "YOUTUBE",
+    "category": "Software & Subscriptions"
+  },
+  {
+    "normalizedKey": "AIRTEL",
+    "category": "Utilities & Bills"
+  },
+  {
+    "normalizedKey": "JIO",
+    "category": "Utilities & Bills"
+  },
+  {
+    "normalizedKey": "VI",
+    "category": "Utilities & Bills"
+  },
+  {
+    "normalizedKey": "TATA POWER",
+    "category": "Utilities & Bills"
+  },
+  {
+    "normalizedKey": "BSES",
+    "category": "Utilities & Bills"
+  },
+  {
+    "normalizedKey": "ADANI ELECTRICITY",
+    "category": "Utilities & Bills"
+  },
+  {
+    "normalizedKey": "RENT",
+    "category": "Rent & Housing"
+  },
+  {
+    "normalizedKey": "LANDLORD",
+    "category": "Rent & Housing"
+  },
+  {
+    "normalizedKey": "ZERODHA",
+    "category": "Transfers & Investments"
+  },
+  {
+    "normalizedKey": "GROWW",
+    "category": "Transfers & Investments"
+  },
+  {
+    "normalizedKey": "UPSTOX",
+    "category": "Transfers & Investments"
+  },
+  {
+    "normalizedKey": "MUTUAL FUND",
+    "category": "Transfers & Investments"
+  },
+  {
+    "normalizedKey": "SIP",
+    "category": "Transfers & Investments"
+  }
+]

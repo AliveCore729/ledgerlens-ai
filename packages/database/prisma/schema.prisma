@@ -160,3 +160,26 @@ model SkippedChunkLog {
   isLogOnly      Boolean   @default(true)
   createdAt      DateTime  @default(now())
 }
+
+model VendorCategoryCache {
+  normalizedKey String   @id
+  rawExamples   String[] @default([])
+  category      String
+  confidence    String   // 'rule', 'llm', or 'admin_override'
+  hitCount      Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([normalizedKey])
+}
+
+model UploadMetrics {
+  id               String   @id @default(uuid())
+  statementId      String   @unique
+  totalTransactions Int
+  ruleHitCount     Int
+  cacheHitCount    Int
+  llmFallbackCount Int
+  cacheHitRate     Float
+  createdAt        DateTime @default(now())
+}
