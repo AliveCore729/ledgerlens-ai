@@ -64,4 +64,4 @@ WORKDIR /app/apps/api
 EXPOSE 10000
 
 # Startup script: push schema then start API
-CMD sh -c "cd /app/packages/database && npx prisma db push --schema=./prisma/schema.prisma --skip-generate && cd /app/apps/api && node dist/main.js"
+CMD sh -c "cd /app/packages/database && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma --skip-generate && cd /app/apps/api && node dist/main.js"
