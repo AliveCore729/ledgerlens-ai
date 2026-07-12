@@ -32,7 +32,14 @@ export class UploadsController {
   @UseInterceptors(
     FileInterceptor("file", {
       storage: diskStorage({
-        destination: "./uploads",
+        destination: (req, file, callback) => {
+          const fs = require('fs');
+          const dir = './uploads';
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          callback(null, dir);
+        },
 
         filename: (_req, file, callback) => {
           const uniqueSuffix =
