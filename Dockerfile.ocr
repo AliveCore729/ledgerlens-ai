@@ -8,7 +8,7 @@ RUN npm install -g pnpm@9.0.0
 WORKDIR /app
 
 # Install necessary OS packages for OCR (tesseract)
-RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd openssl
+RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd openssl poppler-utils
 
 # Copy configuration files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -37,7 +37,7 @@ FROM node:20-alpine AS runner
 RUN npm install -g pnpm@9.0.0
 
 # Install necessary OS packages for OCR in production
-RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd openssl
+RUN apk add --no-cache tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-osd openssl poppler-utils
 
 WORKDIR /app
 
