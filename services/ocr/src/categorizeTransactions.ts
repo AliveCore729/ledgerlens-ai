@@ -131,12 +131,20 @@ async function callGeminiCategorizationBatch(unresolvedVendors: Map<string, { ra
     .map(([k, v]) => `"${k}" (Raw: ${v.raw}, Type: ${v.type}, Amount: ${v.amount})`)
     .join('\n');
   
-  const systemInstruction = `You are a financial categorization expert. Map the following list of unhandled vendor names to standard categories.
+  const systemInstruction = `You are an elite financial categorization AI. Your task is to map unhandled/obscure bank transaction vendor names to standard categories.
 Valid categories MUST be one of: Income, Food & Dining, Travel & Transportation, Software & Subscriptions, Utilities & Bills, Rent & Housing, Salary & Payroll, Office Supplies, Marketing & Advertising, Bank Fees & Charges, Transfers & Investments, Healthcare & Insurance, Shopping & Retail, Entertainment & Leisure, Taxes & Fines, or Misc.
-Use the provided Transaction Type (CREDIT/DEBIT) and Amount context to make accurate guesses for unknown vendors.
-Respond strictly with a JSON object mapping the exact Normalized Key to its Category string.`;
 
-  const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash-lite:generateContent`;
+CRITICAL DEDUCTION RULES:
+1. CREDIT + Large Amount (e.g. ₹10k+): Strongly favor 'Income' or 'Transfers & Investments'.
+2. CREDIT + Small Amount (e.g. Refunds): Use 'Shopping & Retail' or 'Misc'.
+3. Personal Names (e.g. 'JOHN DOE', 'RAHUL'): Always classify as 'Transfers & Investments'.
+4. DEBIT + Small Amount (e.g. ₹50 - ₹1000): If unknown, prefer 'Food & Dining' or 'Shopping & Retail' over 'Misc'.
+5. DEBIT + Large Amount (e.g. ₹25,000+): Likely 'Rent & Housing', 'Transfers & Investments', or 'Taxes & Fines'.
+6. 'TECH', 'SOFT', 'CLOUD' in name: Use 'Software & Subscriptions'.
+
+Respond STRICTLY with a flat JSON object where keys are the exact Normalized Key, and values are the Category string. Do not include markdown formatting.`;
+
+  const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
   
   const response = await fetch(url, {
     method: 'POST',
