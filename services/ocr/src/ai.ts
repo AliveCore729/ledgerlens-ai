@@ -97,7 +97,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
       throw new Error("CANCELLED");
     }
 
-    const prompt = `Extract the bank statement transactions from the following raw OCR text chunk. Focus on dates, times, amounts, transaction types (CREDIT or DEBIT), vendor names, and categorize them into standard financial categories. Ignore headers, footers, and non-transaction text.
+    const systemInstructionText = `Extract the bank statement transactions from the following raw OCR text chunk. Focus on dates, times, amounts, transaction types (CREDIT or DEBIT), vendor names, and categorize them into standard financial categories. Ignore headers, footers, and non-transaction text.
 
   CRITICAL: 
   - For 'date', you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
@@ -121,11 +121,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
     "vendor": "Clean Merchant Name",
     "category": "Food & Dining",
     "narration": "Full original line"
-  }]
-
-  Raw Text Chunk:
-  ${chunk}
-  `;
+  }]`;
 
     let retries = 0;
     const maxRetries = 5;
@@ -152,7 +148,8 @@ export async function parseTransactions(rawText: string, statementId: string) {
             'x-goog-api-key': process.env.GEMINI_API_KEY as string,
           },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemInstructionText }] },
+            contents: [{ parts: [{ text: `Raw Text Chunk:\n${chunk}` }] }],
             generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 }, maxOutputTokens: 65536 }
           }),
           signal: controller.signal
