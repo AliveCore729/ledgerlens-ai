@@ -97,30 +97,28 @@ export async function parseTransactions(rawText: string, statementId: string) {
       throw new Error("CANCELLED");
     }
 
-    const systemInstructionText = `Extract the bank statement transactions from the following raw OCR text chunk. Focus on dates, times, amounts, transaction types (CREDIT or DEBIT), vendor names, and categorize them into standard financial categories. Ignore headers, footers, and non-transaction text.
+    const systemInstructionText = `Extract the bank statement transactions from the following raw OCR text chunk. Focus on dates, times, amounts, transaction types (CR or DR), vendor names, and categorize them into standard financial categories. Ignore headers, footers, and non-transaction text.
 
   CRITICAL: 
-  - For 'date', you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
-  - For 'amount', you MUST extract the actual transaction amount. CRITICAL: OCR frequently misreads digits (e.g. reading '301' as '101'). To fix this, you MUST mathematically verify the amount using the Balance column! The transaction amount MUST exactly equal the difference between the current row's Balance and the previous row's Balance (or Opening Balance). If the printed amount does not match the math, TRUST THE MATH and output the mathematically calculated amount!
-  - For 'time', extract the exact time from the statement line. If no time is explicitly visible, leave it blank.
-  - For 'vendor', provide ONLY a short, clean business name (e.g., "Amazon", "Uber"). Strip out any transaction IDs or filler words like "POS", "UPI". If it's a UPI/QR payment, extract the merchant name from the VPA string (e.g. 'paytmqr...' -> 'Paytm Merchant').
-  - For 'narration', provide the exact full original text of the transaction line as it appears in the statement.
-  - For 'category', you MUST map it to one of the following standard categories: Income, Food & Dining, Travel & Transportation, Software & Subscriptions, Utilities & Bills, Rent & Housing, Salary & Payroll, Office Supplies, Marketing & Advertising, Bank Fees & Charges, Transfers & Investments, Healthcare & Insurance, Shopping & Retail, Entertainment & Leisure, Taxes & Fines, or Misc. 
+  - For 'd' (date), you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
+  - For 'amt' (amount), you MUST extract the actual transaction amount. CRITICAL: OCR frequently misreads digits (e.g. reading '301' as '101'). To fix this, you MUST mathematically verify the amount using the 'bal' (Balance) column! The transaction amount MUST exactly equal the difference between the current row's Balance and the previous row's Balance (or Opening Balance). If the printed amount does not match the math, TRUST THE MATH and output the mathematically calculated amount!
+  - For 't' (time), extract the exact time from the statement line. If no time is explicitly visible, leave it blank.
+  - For 'v' (vendor), provide ONLY a short, clean business name (e.g., "Amazon", "Uber"). Strip out any transaction IDs or filler words like "POS", "UPI". If it's a UPI/QR payment, extract the merchant name from the VPA string (e.g. 'paytmqr...' -> 'Paytm Merchant').
+  - For 'cat' (category), you MUST map it to one of the following standard categories: Income, Food & Dining, Travel & Transportation, Software & Subscriptions, Utilities & Bills, Rent & Housing, Salary & Payroll, Office Supplies, Marketing & Advertising, Bank Fees & Charges, Transfers & Investments, Healthcare & Insurance, Shopping & Retail, Entertainment & Leisure, Taxes & Fines, or Misc. 
   - CATEGORY RULES:
     1. For UPI/IMPS/NEFT transfers, look closely at the receiver's name or VPA string. If it contains business keywords ('tech', 'retail', 'qr', 'private', 'bill', 'amazon'), categorize it semantically (e.g., 'Shopping & Retail', 'Utilities & Bills', 'Software & Subscriptions').
     2. ONLY use 'Transfers & Investments' for peer-to-peer transfers to human names, self bank transfers, or credit card bill payments.
     3. Try your absolute best to infer a specific category from the vendor name before falling back to "Misc".
 
-  You MUST respond strictly with a valid JSON array of objects using exactly these keys:
+  You MUST respond strictly with a valid JSON array of objects using exactly these short keys:
   [{
-    "date": "YYYY-MM-DD",
-    "time": "HH:MM",
-    "amount": 12.50,
-    "balance": 1938.64,
-    "type": "CREDIT" | "DEBIT",
-    "vendor": "Clean Merchant Name",
-    "category": "Food & Dining",
-    "narration": "Full original line"
+    "d": "YYYY-MM-DD",
+    "t": "HH:MM",
+    "amt": 12.50,
+    "bal": 1938.64,
+    "typ": "CR",
+    "v": "Clean Merchant Name",
+    "cat": "Food & Dining"
   }]`;
 
     let retries = 0;
@@ -186,13 +184,13 @@ export async function parseTransactions(rawText: string, statementId: string) {
           await prisma.transaction.createMany({
             data: parsed.map((tx: any, index: number) => ({
               statementId: statementId,
-              date: tx.date,
-              time: tx.time || null,
-              amount: tx.amount,
-              type: tx.type,
-              vendor: tx.vendor,
-              category: tx.category,
-              raw: tx.narration || tx.vendor,
+              date: tx.d,
+              time: tx.t || null,
+              amount: tx.amt,
+              type: tx.typ === 'CR' || tx.typ === 'CREDIT' ? 'CREDIT' : 'DEBIT',
+              vendor: tx.v,
+              category: tx.cat,
+              raw: tx.v,
               createdAt: new Date(now.getTime() + index) // Offset by index to preserve order within chunk
             }))
           });
