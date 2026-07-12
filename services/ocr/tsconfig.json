@@ -38,5 +38,5 @@
     "noUncheckedSideEffectImports": true,
     "skipLibCheck": true
   },
-  "exclude": ["test-*.ts", "dist"]
+  "exclude": ["test-*.ts", "**/*.test.ts", "dist"]
 }
