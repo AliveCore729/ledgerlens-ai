@@ -34,7 +34,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
     throw new Error("GEMINI_PROXY_URL is missing.");
   }
 
-  if (rawText.length > 150000) {
+  if (rawText.length > 500000) {
     throw new Error("Statement is too large to process. Please split it into smaller files or fewer pages.");
   }
 
@@ -44,16 +44,16 @@ export async function parseTransactions(rawText: string, statementId: string) {
   let currentChunk = '';
   
   for (const line of lines) {
-    if (currentChunk.length + line.length > 3500) {
+    if (currentChunk.length + line.length > 20000) {
       if (currentChunk.trim().length > 0) chunks.push(currentChunk);
       currentChunk = '';
       
       // Forcefully slice massive single lines (e.g. PDFs missing newlines)
-      if (line.length > 3500) {
+      if (line.length > 20000) {
         let remainingLine = line;
-        while (remainingLine.length > 3500) {
-          chunks.push(remainingLine.substring(0, 3500));
-          remainingLine = remainingLine.substring(3500);
+        while (remainingLine.length > 20000) {
+          chunks.push(remainingLine.substring(0, 20000));
+          remainingLine = remainingLine.substring(20000);
         }
         currentChunk = remainingLine + '\n';
         continue;
@@ -206,12 +206,14 @@ export async function parseTransactions(rawText: string, statementId: string) {
         lastError = error;
         const errMsg = String(error?.message || "");
         if (error?.status === 429 || errMsg.includes('429')) {
-          console.log(`Rate limit hit on chunk. Waiting 30s before retry...`);
-          await sleep(30000);
+          const delay = Math.min(30000 * Math.pow(2, retries), 300000); // 30s, 60s, 120s... max 5m
+          console.log(`Rate limit hit on chunk. Waiting ${delay/1000}s before retry...`);
+          await sleep(delay);
           retries++;
         } else if (error?.status === 503 || errMsg.includes('503') || errMsg.includes('high demand') || errMsg.includes('overloaded')) {
-          console.log(`Gemini is experiencing high demand (503). Waiting 10s before retry...`);
-          await sleep(10000);
+          const delay = Math.min(10000 * Math.pow(2, retries), 120000); // 10s, 20s, 40s... max 2m
+          console.log(`Gemini is experiencing high demand (503). Waiting ${delay/1000}s before retry...`);
+          await sleep(delay);
           retries++;
         } else {
           console.error("Failed to parse Gemini JSON for a chunk:", error);
