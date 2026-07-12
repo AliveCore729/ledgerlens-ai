@@ -126,5 +126,21 @@
   {
     "normalizedKey": "SIP",
     "category": "Transfers & Investments"
+  },
+  {
+    "normalizedKey": "PAYTM",
+    "category": "Transfers & Investments"
+  },
+  {
+    "normalizedKey": "PAYTM PAYMENTS",
+    "category": "Transfers & Investments"
+  },
+  {
+    "normalizedKey": "PAYTM MERCHANT",
+    "category": "Shopping & Retail"
+  },
+  {
+    "normalizedKey": "UPI PAYTM",
+    "category": "Transfers & Investments"
   }
 ]

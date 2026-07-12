@@ -19,7 +19,7 @@ export async function categorizeTransactions(statementId: string) {
 
   let ruleHitCount = 0;
   let cacheHitCount = 0;
-  const unresolvedVendors = new Map<string, string>(); // normalizedKey -> raw description
+  const unresolvedVendors = new Map<string, { raw: string, type: string, amount: number }>(); // normalizedKey -> context
 
   // Pass 1: Local Classification (Rules + Cache)
   for (const txn of transactions) {
@@ -42,10 +42,15 @@ export async function categorizeTransactions(statementId: string) {
         cacheHitCount++;
       } else {
         // 3. Mark as Unresolved
+      if (!normalizedKey || normalizedKey.length < 2) {
+        // If it was fully stripped (e.g. an alphanumeric ID)
+        assignedCategory = 'Misc';
+        ruleHitCount++;
+      } else {
         if (!unresolvedVendors.has(normalizedKey)) {
-          unresolvedVendors.set(normalizedKey, rawDesc);
+          unresolvedVendors.set(normalizedKey, { raw: rawDesc, type: txn.type, amount: txn.amount });
         }
-      }
+      }  }
     }
 
     // Update the transaction in memory so we can save it later
@@ -64,7 +69,8 @@ export async function categorizeTransactions(statementId: string) {
     const fallbackMap = await callGeminiCategorizationBatch(unresolvedVendors);
     
     for (const [normalizedKey, category] of fallbackMap.entries()) {
-      const rawDesc = unresolvedVendors.get(normalizedKey) || normalizedKey;
+      const vendorContext = unresolvedVendors.get(normalizedKey);
+      const rawDesc = vendorContext?.raw || normalizedKey;
       await VendorCacheService.upsert(normalizedKey, category, 'llm', rawDesc);
       
       // Assign back to memory transactions
@@ -116,15 +122,18 @@ export async function categorizeTransactions(statementId: string) {
 /**
  * Calls Gemini 2.5 Flash-Lite with a minimal prompt to map unresolved vendors to categories.
  */
-async function callGeminiCategorizationBatch(unresolvedVendors: Map<string, string>): Promise<Map<string, string>> {
+async function callGeminiCategorizationBatch(unresolvedVendors: Map<string, { raw: string, type: string, amount: number }>): Promise<Map<string, string>> {
   if (!process.env.GEMINI_API_KEY || !process.env.GEMINI_PROXY_URL) {
     throw new Error("Missing Gemini credentials.");
   }
 
-  const vendorsList = Array.from(unresolvedVendors.entries()).map(([k, v]) => `"${k}" (Raw: ${v})`).join('\n');
+  const vendorsList = Array.from(unresolvedVendors.entries())
+    .map(([k, v]) => `"${k}" (Raw: ${v.raw}, Type: ${v.type}, Amount: ${v.amount})`)
+    .join('\n');
   
   const systemInstruction = `You are a financial categorization expert. Map the following list of unhandled vendor names to standard categories.
 Valid categories MUST be one of: Income, Food & Dining, Travel & Transportation, Software & Subscriptions, Utilities & Bills, Rent & Housing, Salary & Payroll, Office Supplies, Marketing & Advertising, Bank Fees & Charges, Transfers & Investments, Healthcare & Insurance, Shopping & Retail, Entertainment & Leisure, Taxes & Fines, or Misc.
+Use the provided Transaction Type (CREDIT/DEBIT) and Amount context to make accurate guesses for unknown vendors.
 Respond strictly with a JSON object mapping the exact Normalized Key to its Category string.`;
 
   const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash-lite:generateContent`;
@@ -139,12 +148,7 @@ Respond strictly with a JSON object mapping the exact Normalized Key to its Cate
       systemInstruction: { parts: [{ text: systemInstruction }] },
       contents: [{ parts: [{ text: `Vendors to categorize:\n${vendorsList}` }] }],
       generationConfig: { 
-        responseMimeType: "application/json",
-        // Enforce JSON Object map: { "normalizedKey": "Category" }
-        responseSchema: {
-          type: "OBJECT",
-          additionalProperties: { type: "STRING" }
-        }
+        responseMimeType: "application/json"
       }
     })
   });

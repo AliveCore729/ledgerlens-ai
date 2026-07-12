@@ -15,6 +15,8 @@ export function stripVariableTokens(desc: string): string {
   let cleaned = desc;
   // Strip 10+ digit numbers (reference numbers, accounts)
   cleaned = cleaned.replace(/\b\d{10,}\b/g, '');
+  // Strip long alphanumeric reference IDs (e.g. SV2512112247303517535857)
+  cleaned = cleaned.replace(/\b[A-Za-z0-9]{15,}\b/g, '');
   // Strip masked cards like xxxx4021 or 1234xxxx5678
   cleaned = cleaned.replace(/\b[xX*]+\d{4}\b/g, '');
   cleaned = cleaned.replace(/\b\d{4}[xX*]+\d{4}\b/g, '');
