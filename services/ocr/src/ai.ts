@@ -141,7 +141,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           timeoutId = setTimeout(() => {
             controller.abort();
             reject(new Error("NETWORK_TIMEOUT"));
-          }, 60000);
+          }, 300000); // Increased to 5 minutes to allow massive 20k chunk generation
         });
         
         const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
