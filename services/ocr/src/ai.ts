@@ -220,6 +220,9 @@ export async function parseTransactions(rawText: string, statementId: string) {
     if (!success) {
       const errMsg = String(lastError?.message || "");
       if (lastError?.status === 429 || errMsg.includes('429')) {
+        if (errMsg.toLowerCase().includes('quota')) {
+          throw new Error("QUOTA_EXHAUSTED");
+        }
         throw new Error("RATE_LIMIT");
       }
       throw lastError || new Error("Exhausted retries for chunk.");

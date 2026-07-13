@@ -98,12 +98,14 @@ const worker = new Worker(
         throw error; // Let BullMQ catch it and schedule exponential backoff
       }
 
-      // Update status to failed for any other error
+      // Update status to failed for any other error (including Quota Exhausted, Auth Errors, Corrupted PDFs)
       await prisma.statement.update({
         where: { id: statementId },
         data: { status: 'FAILED' }
       }).catch(() => {});
-      throw error;
+      
+      // Throw UnrecoverableError so BullMQ fails the job instantly and does NOT retry 25 times!
+      throw new UnrecoverableError(error?.message || "Terminal Error");
     } finally {
       if (tempFilePath && fs.existsSync(tempFilePath)) {
         try {
