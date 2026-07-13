@@ -1,4 +1,4 @@
-import { Worker, UnrecoverableError } from 'bullmq';
+import { Worker, UnrecoverableError, DelayedError } from 'bullmq';
 import IORedis from 'ioredis';
 import { prisma } from '@ledgerlens/database';
 import { extractText } from './extractor';
@@ -97,8 +97,19 @@ const worker = new Worker(
         }).catch(() => {});
         throw error; // Let BullMQ catch it and schedule exponential backoff
       }
+      if (error?.message === "QUOTA_EXHAUSTED") {
+        // Mark as delayed in UI
+        await prisma.statement.update({
+          where: { id: statementId },
+          data: { status: 'DELAYED' }
+        }).catch(() => {});
+        
+        // Push 12 hours into the future
+        await job.moveToDelayed(Date.now() + 12 * 60 * 60 * 1000, job.token);
+        throw new DelayedError();
+      }
 
-      // Update status to failed for any other error (including Quota Exhausted, Auth Errors, Corrupted PDFs)
+      // Update status to failed for any other error (including Auth Errors, Corrupted PDFs)
       await prisma.statement.update({
         where: { id: statementId },
         data: { status: 'FAILED' }
@@ -116,7 +127,11 @@ const worker = new Worker(
       }
     }
   },
-  { connection: connection as any }
+  { 
+    connection: connection as any,
+    // CRITICAL: Must be 1 to prevent rate-limit storms on Gemini Free Tier!
+    concurrency: 1 
+  }
 );
 
 worker.on('completed', (job) => {

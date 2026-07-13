@@ -138,6 +138,8 @@ export async function parseTransactions(rawText: string, statementId: string) {
           }, 300000); // Increased to 5 minutes to allow massive 20k chunk generation
         });
         
+
+
         const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
         const fetchPromise = fetch(url, {
           method: 'POST',
@@ -169,7 +171,11 @@ export async function parseTransactions(rawText: string, statementId: string) {
         
         if (result.error) {
           const errMsg = result.error.message || "Gemini API Error";
-          throw new Error(`[${result.error.code || 500}] ${errMsg}`);
+          const errCode = result.error.code || 500;
+          const errObj = new Error(`[${errCode}] ${errMsg}`);
+          (errObj as any).status = result.error.status; // e.g. "RESOURCE_EXHAUSTED"
+          (errObj as any).code = errCode;
+          throw errObj;
         }
 
         let text = result.candidates[0].content.parts[0].text;
@@ -200,7 +206,13 @@ export async function parseTransactions(rawText: string, statementId: string) {
       } catch (error: any) {
         lastError = error;
         const errMsg = String(error?.message || "");
-        if (error?.status === 429 || errMsg.includes('429')) {
+        
+        if (error?.code === 429 || error?.status === 429 || errMsg.includes('429')) {
+          if (error?.status === 'RESOURCE_EXHAUSTED' || errMsg.toLowerCase().includes('quota')) {
+            console.error("CRITICAL: Daily Quota Exhausted detected. Failing fast to delayed queue.", { status: error?.status, message: errMsg });
+            throw new Error("QUOTA_EXHAUSTED");
+          }
+
           const delay = Math.min(30000 * Math.pow(2, retries), 300000); // 30s, 60s, 120s... max 5m
           console.log(`Rate limit hit on chunk. Waiting ${delay/1000}s before retry...`);
           await sleep(delay);
