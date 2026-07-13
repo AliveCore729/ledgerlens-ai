@@ -75,7 +75,11 @@ export class UploadsService {
         fileData,
         filePassword,
       }, {
-        attempts: 1,
+        attempts: 25, // Allow up to 25 attempts for free-tier rate limits
+        backoff: {
+          type: 'exponential',
+          delay: 60000 // 1 minute base delay between retries
+        },
         removeOnComplete: { count: 1000 },
         removeOnFail: { count: 1000 }
       });
