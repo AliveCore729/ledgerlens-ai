@@ -109,14 +109,29 @@ const worker = new Worker(
         throw new DelayedError();
       }
 
-      // Update status to failed for any other error (including Auth Errors, Corrupted PDFs)
+      // Explicit terminal allowlist — only these are truly unrecoverable
+      const isTerminal =
+        error?.message?.includes('Unsupported file type') ||
+        error?.message?.toLowerCase().includes('password') || // pdftoppm throws "Incorrect password"
+        error?.code === 401 ||
+        error?.code === 403;
+
+      if (isTerminal) {
+        await prisma.statement.update({
+          where: { id: statementId },
+          data: { status: 'FAILED' }
+        }).catch(() => {});
+
+        throw new UnrecoverableError(error?.message || "Terminal Error");
+      }
+
+      // Unrecognized error — treat as potentially transient, use normal retry
       await prisma.statement.update({
         where: { id: statementId },
-        data: { status: 'FAILED' }
+        data: { status: 'DELAYED' } // Reflect in UI that it's waiting for retry
       }).catch(() => {});
-      
-      // Throw UnrecoverableError so BullMQ fails the job instantly and does NOT retry 25 times!
-      throw new UnrecoverableError(error?.message || "Terminal Error");
+
+      throw error; // falls through to BullMQ's default attempts:25 backoff
     } finally {
       if (tempFilePath && fs.existsSync(tempFilePath)) {
         try {
@@ -138,8 +153,19 @@ worker.on('completed', (job) => {
   console.log(`${job.id} has completed!`);
 });
 
-worker.on('failed', (job, err) => {
+worker.on('failed', async (job, err) => {
   console.log(`${job?.id} has failed with ${err.message}`);
+  
+  if (job?.data?.statementId) {
+    const isExhausted = job.attemptsMade === job.opts.attempts;
+    if (isExhausted) {
+      // If 25 attempts are completely exhausted, sync the terminal failure to the DB
+      await prisma.statement.update({
+        where: { id: job.data.statementId },
+        data: { status: 'FAILED' }
+      }).catch(() => {});
+    }
+  }
 });
 
 const gracefulShutdown = async (signal: string) => {

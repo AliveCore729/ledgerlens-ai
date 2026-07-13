@@ -140,6 +140,8 @@ export async function parseTransactions(rawText: string, statementId: string) {
         
 
 
+
+
         const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
         const fetchPromise = fetch(url, {
           method: 'POST',
