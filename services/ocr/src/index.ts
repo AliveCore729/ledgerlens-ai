@@ -114,7 +114,8 @@ const worker = new Worker(
         error?.message?.includes('Unsupported file type') ||
         error?.message?.toLowerCase().includes('password') || // pdftoppm throws "Incorrect password"
         error?.code === 401 ||
-        error?.code === 403;
+        error?.code === 403 ||
+        error?.code === 404;
 
       if (isTerminal) {
         await prisma.statement.update({
