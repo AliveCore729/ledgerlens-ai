@@ -142,7 +142,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
 
 
 
-        const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+        const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest';
         const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/${modelName}:generateContent`;
         const fetchPromise = fetch(url, {
           method: 'POST',
