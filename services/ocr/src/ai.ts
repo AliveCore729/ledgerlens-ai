@@ -153,7 +153,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemInstructionText }] },
             contents: [{ parts: [{ text: `Raw Text Chunk:\n${chunk}` }] }],
-            generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 }, maxOutputTokens: 65536 }
+            generationConfig: { responseMimeType: "application/json" }
           }),
           signal: controller.signal
         }).then(async res => {
