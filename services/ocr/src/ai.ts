@@ -101,7 +101,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
 
   CRITICAL: 
   - For 'd' (date), you MUST convert and return the date strictly in YYYY-MM-DD format (e.g., "2024-06-25"), regardless of how it appears on the statement.
-  - For 'amt' (amount), you MUST extract the actual transaction amount. CRITICAL: OCR frequently misreads digits (e.g. reading '301' as '101'). To fix this, you MUST mathematically verify the amount using the 'bal' (Balance) column! The transaction amount MUST exactly equal the difference between the current row's Balance and the previous row's Balance (or Opening Balance). If the printed amount does not match the math, TRUST THE MATH and output the mathematically calculated amount!
+  - For 'amt' (amount), you MUST extract the exact transaction amount as a positive number. Extract the printed transaction amount exactly as it appears on the statement.
   - For 't' (time), extract the exact time from the statement line. If no time is explicitly visible, leave it blank.
   - For 'v' (vendor), provide ONLY a short, clean business name (e.g., "Amazon", "Uber"). Strip out any transaction IDs or filler words like "POS", "UPI". If it's a UPI/QR payment, extract the merchant name from the VPA string (e.g. 'paytmqr...' -> 'Paytm Merchant').
   - For 'cat' (category), you MUST map it to one of the following standard categories: Income, Food & Dining, Travel & Transportation, Software & Subscriptions, Utilities & Bills, Rent & Housing, Salary & Payroll, Office Supplies, Marketing & Advertising, Bank Fees & Charges, Transfers & Investments, Healthcare & Insurance, Shopping & Retail, Entertainment & Leisure, Taxes & Fines, or Misc. 
@@ -148,7 +148,7 @@ export async function parseTransactions(rawText: string, statementId: string) {
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemInstructionText }] },
             contents: [{ parts: [{ text: `Raw Text Chunk:\n${chunk}` }] }],
-            generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 }, maxOutputTokens: 65536 }
+            generationConfig: { responseMimeType: "application/json" }
           }),
           signal: controller.signal
         }).then(async res => {
