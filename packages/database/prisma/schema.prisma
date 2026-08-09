@@ -160,3 +160,14 @@ model SkippedChunkLog {
   isLogOnly      Boolean   @default(true)
   createdAt      DateTime  @default(now())
 }
+
+/// Cross-statement, cross-user narration → category cache.
+/// narrationKey is `debit::<normalized>` or `credit::<normalized>`.
+model TransactionCategoryCache {
+  narrationKey String   @id
+  category     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("transaction_category_cache")
+}

@@ -1,8 +1,10 @@
 import { Worker, UnrecoverableError } from 'bullmq';
 import IORedis from 'ioredis';
 import { prisma } from '@ledgerlens/database';
-import { extractText } from './extractor';
-import { parseTransactions } from './ai';
+import { extractText } from './extractor.js';
+import { parseTransactions } from './ai.js';
+import { extractStatementTable } from './pdfTableExtractor.js';
+import { categorizeStatementRows } from './categorizeTransactions.js';
 
 import * as http from 'http';
 
@@ -61,13 +63,45 @@ const worker = new Worker(
       tempFilePath = path.join('/tmp', `ledgerlens-ocr-${crypto.randomBytes(4).toString('hex')}${ext}`);
       fs.writeFileSync(tempFilePath, Buffer.from(fileData, 'base64'));
 
-      // 1. Extract Text
-      const rawText = await extractText(tempFilePath, statement.mimeType, filePassword);
-      
-      // 2. AI Parsing
-      const parsedTransactions = await parseTransactions(rawText, statementId);
+      // -------------------------------------------------------------------
+      // Processing: structure-aware path for PDFs, existing path as fallback
+      // -------------------------------------------------------------------
+      let structureSucceeded = false;
 
-      // 3. Transactions are now checkpointed (saved) chunk-by-chunk inside parseTransactions!
+      if (statement.mimeType === 'application/pdf' || tempFilePath.endsWith('.pdf')) {
+        const extraction = await extractStatementTable(tempFilePath);
+
+        if (!extraction.needsFallback && extraction.rows.length > 0) {
+          console.log(`[TABLE] Structure-aware path: ${extraction.rows.length} rows extracted`);
+          const categorized = await categorizeStatementRows(extraction.rows);
+
+          const now = new Date();
+          await prisma.transaction.createMany({
+            data: categorized.map((tx, i) => ({
+              statementId,
+              date: tx.date,
+              time: null as string | null,
+              amount: tx.debit ?? tx.credit ?? 0,
+              type: tx.type,           // 'CREDIT' | 'DEBIT'
+              vendor: tx.narration || '',
+              normalizedVendor: tx.narration ? tx.narration.toLowerCase().trim() : null,
+              category: tx.category,
+              raw: tx.raw,
+              createdAt: new Date(now.getTime() + i), // preserve row order
+            })),
+          });
+          structureSucceeded = true;
+        } else {
+          console.log(`[TABLE] Falling back to text extraction: ${extraction.reason ?? 'no rows extracted'}`);
+        }
+      }
+
+      if (!structureSucceeded) {
+        // Fallback: existing flat-text extraction + Gemini parsing
+        // (also handles CSV, Excel, image files and scanned PDFs)
+        const rawText = await extractText(tempFilePath, statement.mimeType, filePassword);
+        await parseTransactions(rawText, statementId);
+      }
 
       // Update status to completed
       await prisma.statement.update({
@@ -76,6 +110,7 @@ const worker = new Worker(
       });
 
       console.log(`Successfully processed statement ${statementId}`);
+
 
       // Send Email Notification
       const { sendCompletionEmail } = require('./email');
