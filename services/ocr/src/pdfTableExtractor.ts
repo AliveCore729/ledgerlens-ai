@@ -237,11 +237,9 @@ function looksLikeDate(s: string): boolean {
 // ---------------------------------------------------------------------------
 
 export async function extractStatementTable(filePath: string): Promise<ExtractionResult> {
-  // Lazy-require pdfjs-dist to avoid issues with CJS/ESM in NodeNext mode.
-  // Using the legacy CJS build so it works without a web worker in Node.js.
-  // @ts-ignore – subpath not in package exports typemap
+  // pdfjs-dist v4 CJS: package exports map resolves to ./build/pdf.cjs in require() context
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfjsLib: any = require('pdfjs-dist/legacy/build/pdf.js');
+  const pdfjsLib: any = require('pdfjs-dist'); // @ts-ignore
   pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 
   let rawBuffer: Buffer;
