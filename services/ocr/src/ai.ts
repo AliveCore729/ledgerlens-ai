@@ -138,7 +138,8 @@ export async function parseTransactions(rawText: string, statementId: string) {
           }, 300000); // Increased to 5 minutes to allow massive 20k chunk generation
         });
         
-        const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/gemini-2.5-flash:generateContent`;
+        const model = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash';
+        const url = `${process.env.GEMINI_PROXY_URL}/v1beta/models/${model}:generateContent`;
         const fetchPromise = fetch(url, {
           method: 'POST',
           headers: {
