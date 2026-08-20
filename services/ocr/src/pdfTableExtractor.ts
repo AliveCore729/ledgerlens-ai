@@ -227,8 +227,10 @@ export function clusterIntoRows(items: TextItem[]): TextItem[][] {
 
 function looksLikeDate(s: string): boolean {
   return (
+    // DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY, YYYY-MM-DD, etc.
     /\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}/.test(s) ||
-    /\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(s)
+    // DD Mon YYYY or DD-Mon-YYYY or DD.Mon.YYYY (e.g. 21 Aug 2024, 21-Aug-24)
+    /\d{1,2}[\s\-\.](jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(s)
   );
 }
 
@@ -261,6 +263,11 @@ export async function extractStatementTable(filePath: string): Promise<Extractio
 
   const allRows: ExtractedRow[] = [];
   let headerFoundOnAnyPage = false;
+  // Persisted across pages: once we find the column layout we keep it for the
+  // entire document. Banks that repeat the header on every page are handled
+  // because repeated headers fail looksLikeDate and are silently skipped.
+  let bands: ColumnBand[] | null = null;
+  let isSingleAmountColumn = false;
 
   for (let pageNum = 1; pageNum <= (pdfDoc.numPages as number); pageNum++) {
     const page = await pdfDoc.getPage(pageNum);
@@ -284,9 +291,6 @@ export async function extractStatementTable(filePath: string): Promise<Extractio
     if (items.length === 0) continue;
 
     const pageRows = clusterIntoRows(items);
-    let bands: ColumnBand[] | null = null;
-    // true when bank uses a single Amount column with CR/DR suffix per row
-    let isSingleAmountColumn = false;
 
     for (const row of pageRows) {
       if (!bands) {
